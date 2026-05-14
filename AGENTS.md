@@ -39,6 +39,10 @@ To keep AI-generated code reliable, every change should be built around a testab
 5. **Evidence in PRs**
    - Summarize what changed, why, and which checks passed.
 
+## ExecPlans
+
+When writing complex features or significant refactors, use an ExecPlan (as described in `.agent/PLANS.md`) from design to implementation.
+
 ## Working agreements for agents
 - Keep architecture simple and evolvable.
 - Prefer clear naming and maintainable code over cleverness.
