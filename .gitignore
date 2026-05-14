@@ -1,0 +1,12 @@
+# Java / Spring Boot
+api/target/
+api/data/
+
+# Angular / Node
+app/node_modules/
+app/dist/
+app/.angular/
+
+# Local tooling
+.DS_Store
+.env
