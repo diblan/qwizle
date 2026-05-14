@@ -20,8 +20,11 @@ The app expects the API at `http://localhost:8080/api`.
 ## Test and build
 
 ```sh
+npm run check:deps
 npm test
 npm run build
 ```
+
+`npm run check:deps` verifies that Angular runtime packages, including the explicit `@angular/cdk` dependency required by Spartan primitives, stay on the same Angular major. Keeping `@angular/cdk` on Angular 20 prevents npm from resolving the latest CDK 21 release during `docker compose build` while the rest of the app remains on Angular 20.
 
 Demo credentials are `learner@qwizle.test` / `qwizle123`.
