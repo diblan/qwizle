@@ -1,4 +1,4 @@
-import { Component, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 
@@ -39,6 +39,8 @@ import { AuthService } from './auth.service';
   `,
 })
 export class LoginComponent {
+  private readonly formBuilder = inject(FormBuilder);
+
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
   readonly form = this.formBuilder.nonNullable.group({
@@ -47,7 +49,6 @@ export class LoginComponent {
   });
 
   constructor(
-    private readonly formBuilder: FormBuilder,
     private readonly auth: AuthService,
     private readonly router: Router,
   ) {}
