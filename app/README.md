@@ -1,11 +1,11 @@
 # Frontend (`/app`)
 
-Angular frontend for Qwizle using Tailwind CSS and SpartanUI-style UI building blocks. SpartanUI is represented by the checked-in Tailwind-based component classes and package dependencies for `@spartan-ng/brain` and `@spartan-ng/cli`, matching Spartan's accessible primitive plus customizable styles model.
+Angular frontend for Qwizle using Tailwind CSS and Spartan UI's Brain/Helm-style approach: accessible Brain primitives are composed in Angular templates and styled directly with Tailwind utility classes. The app keeps dependencies on `@spartan-ng/brain` and `@spartan-ng/cli` and does not use Angular Material, Bootstrap, or another component library.
 
 ## Screens
 
 - `/` public homepage
-- `/login` login form
+- `/login` standalone login page with a responsive Spartan Brain primitive form styled with Tailwind utility classes
 - `/home` logged-in learner homepage guarded by local auth state, including one-answer and fixed-size set question creation/practice
 
 ## Run locally without Docker
