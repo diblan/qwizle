@@ -1,1 +1,60 @@
+.login-page {
+  min-height: 100vh;
+}
 
+.login-card {
+  max-width: 28rem;
+  padding: 2rem;
+  background: #1e293b;
+  border: 1px solid rgba(196, 181, 253, 0.18);
+  border-radius: 1rem;
+}
+
+.login-muted,
+.login-help {
+  color: #9ca3af;
+}
+
+.form-label {
+  color: #e5e7eb;
+  font-weight: 600;
+}
+
+.form-control {
+  background: #0f172a;
+  border-color: rgba(196, 181, 253, 0.24);
+  color: #e5e7eb;
+}
+
+.form-control:focus {
+  background: #0f172a;
+  border-color: #a78bfa;
+  box-shadow: 0 0 0 0.25rem rgba(167, 139, 250, 0.18);
+  color: #e5e7eb;
+}
+
+.invalid-copy {
+  color: #fca5a5;
+  min-height: 1.5rem;
+}
+
+.login-link {
+  color: #c4b5fd;
+  font-weight: 600;
+}
+
+.login-link:hover,
+.login-link:focus {
+  color: #ddd6fe;
+}
+
+.btn-qwizle-primary {
+  --bs-btn-bg: #c4b5fd;
+  --bs-btn-border-color: #c4b5fd;
+  --bs-btn-color: #111827;
+  --bs-btn-hover-bg: #a78bfa;
+  --bs-btn-hover-border-color: #a78bfa;
+  --bs-btn-hover-color: #111827;
+  --bs-btn-focus-shadow-rgb: 196, 181, 253;
+  font-weight: 700;
+}

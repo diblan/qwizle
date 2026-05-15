@@ -1,0 +1,27 @@
+<div class="home-page">
+  <div class="container-xl px-3 px-sm-4">
+    <app-home-header />
+
+    <main>
+      <section class="hero-section text-center" aria-labelledby="home-title">
+        <h1 id="home-title" class="display-3 fw-bold mb-3">Qwizle</h1>
+        <p class="hero-subtitle mb-4">A daily quiz game for testing your knowledge.</p>
+        <div class="d-flex flex-column flex-sm-row justify-content-center gap-3">
+          <button type="button" class="btn btn-qwizle-primary btn-lg">Start quiz</button>
+          <a class="btn btn-qwizle-secondary btn-lg" href="#quiz-modes">How it works</a>
+        </div>
+      </section>
+
+      <section id="quiz-modes" class="quiz-modes" aria-labelledby="quiz-modes-title">
+        <h2 id="quiz-modes-title" class="visually-hidden">Quiz modes</h2>
+        <div class="row g-4">
+          @for (mode of quizModes; track mode.title) {
+            <div class="col-12 col-lg-4">
+              <app-quiz-mode-card [title]="mode.title" [description]="mode.description" />
+            </div>
+          }
+        </div>
+      </section>
+    </main>
+  </div>
+</div>

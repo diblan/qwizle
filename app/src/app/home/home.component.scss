@@ -1,0 +1,44 @@
+.home-page {
+  min-height: 100vh;
+  background: #0f172a;
+  color: #e5e7eb;
+}
+
+.hero-section {
+  padding: 5rem 0 4rem;
+}
+
+.hero-section h1 {
+  color: #f5f3ff;
+}
+
+.hero-subtitle {
+  color: #9ca3af;
+  font-size: 1.2rem;
+}
+
+.btn-qwizle-primary {
+  --bs-btn-bg: #c4b5fd;
+  --bs-btn-border-color: #c4b5fd;
+  --bs-btn-color: #111827;
+  --bs-btn-hover-bg: #a78bfa;
+  --bs-btn-hover-border-color: #a78bfa;
+  --bs-btn-hover-color: #111827;
+  --bs-btn-focus-shadow-rgb: 196, 181, 253;
+  font-weight: 700;
+}
+
+.btn-qwizle-secondary {
+  --bs-btn-bg: transparent;
+  --bs-btn-border-color: rgba(196, 181, 253, 0.45);
+  --bs-btn-color: #e5e7eb;
+  --bs-btn-hover-bg: rgba(167, 139, 250, 0.14);
+  --bs-btn-hover-border-color: #a78bfa;
+  --bs-btn-hover-color: #ffffff;
+  --bs-btn-focus-shadow-rgb: 167, 139, 250;
+  font-weight: 700;
+}
+
+.quiz-modes {
+  padding-bottom: 5rem;
+}

@@ -1,17 +1,13 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { BrnButton } from '@spartan-ng/brain/button';
-import { BrnField } from '@spartan-ng/brain/field';
-import { BrnInput } from '@spartan-ng/brain/input';
-import { BrnLabel } from '@spartan-ng/brain/label';
 
 import { AuthService } from './auth.service';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [BrnButton, BrnField, BrnInput, BrnLabel, ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink],
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss'],
 })

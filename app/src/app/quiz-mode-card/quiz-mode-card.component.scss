@@ -1,0 +1,22 @@
+.quiz-mode-card {
+  background: #1e293b;
+  border: 1px solid rgba(196, 181, 253, 0.16);
+  border-radius: 1rem;
+  color: #e5e7eb;
+  padding: 1.5rem;
+  transition: border-color 160ms ease, transform 160ms ease, background 160ms ease;
+}
+
+.quiz-mode-card:hover {
+  background: #243247;
+  border-color: rgba(196, 181, 253, 0.44);
+  transform: translateY(-2px);
+}
+
+.quiz-mode-card h3 {
+  color: #c4b5fd;
+}
+
+.quiz-mode-card p {
+  color: #9ca3af;
+}

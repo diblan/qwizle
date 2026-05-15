@@ -1,0 +1,47 @@
+<header class="home-header py-3" aria-label="Qwizle home navigation">
+  <nav class="home-header__grid align-items-center" aria-label="Primary navigation">
+    <div class="home-header__side justify-content-start">
+      <div class="dropdown" [class.show]="isOpen('settings')">
+        <button
+          type="button"
+          class="btn btn-header dropdown-toggle"
+          id="settings-menu-button"
+          aria-haspopup="true"
+          [attr.aria-expanded]="isOpen('settings')"
+          (click)="toggleMenu('settings')"
+        >
+          Settings
+        </button>
+        <ul class="dropdown-menu dropdown-menu-dark" [class.show]="isOpen('settings')" aria-labelledby="settings-menu-button">
+          <li><button type="button" class="dropdown-item" (click)="closeMenus()">Theme</button></li>
+          <li><button type="button" class="dropdown-item" (click)="closeMenus()">Sound</button></li>
+          <li><button type="button" class="dropdown-item" (click)="closeMenus()">Language</button></li>
+        </ul>
+      </div>
+    </div>
+
+    <a routerLink="/" class="home-header__brand text-decoration-none" aria-label="Qwizle home" (click)="closeMenus()">
+      <span aria-hidden="true">⚡</span>
+      Qwizle
+    </a>
+
+    <div class="home-header__side justify-content-end">
+      <div class="dropdown" [class.show]="isOpen('account')">
+        <button
+          type="button"
+          class="btn btn-header dropdown-toggle"
+          id="account-menu-button"
+          aria-haspopup="true"
+          [attr.aria-expanded]="isOpen('account')"
+          (click)="toggleMenu('account')"
+        >
+          Sign in
+        </button>
+        <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end" [class.show]="isOpen('account')" aria-labelledby="account-menu-button">
+          <li><a routerLink="/login" class="dropdown-item" (click)="closeMenus()">Sign in</a></li>
+          <li><button type="button" class="dropdown-item" (click)="closeMenus()">Continue anonymously</button></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+</header>

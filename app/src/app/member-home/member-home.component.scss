@@ -1,1 +1,32 @@
+.member-home {
+  color: #e5e7eb;
+}
 
+.member-muted {
+  color: #9ca3af;
+}
+
+.member-quiz-card,
+.member-empty {
+  background: #1e293b;
+  border: 1px solid rgba(196, 181, 253, 0.16);
+  border-radius: 1rem;
+  color: #e5e7eb;
+  padding: 1.5rem;
+}
+
+.member-quiz-card {
+  transition: border-color 160ms ease, transform 160ms ease;
+}
+
+.member-quiz-card:hover,
+.member-quiz-card:focus {
+  border-color: rgba(196, 181, 253, 0.44);
+  color: #ffffff;
+  transform: translateY(-2px);
+}
+
+.member-count {
+  color: #c4b5fd;
+  font-weight: 700;
+}

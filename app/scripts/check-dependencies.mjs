@@ -46,4 +46,4 @@ for (const name of ['@angular/build', '@angular/cli', '@angular/compiler-cli']) 
   }
 }
 
-console.log(`Angular dependency majors are pinned to ${expectedMajor}, including @angular/cdk.`);
+console.log(`Angular dependency majors are pinned to ${expectedMajor}.`);
