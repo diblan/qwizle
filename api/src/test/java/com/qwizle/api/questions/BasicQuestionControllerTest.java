@@ -145,6 +145,47 @@ class BasicQuestionControllerTest {
     }
 
     @Test
+    void setQuestionCreationRejectsLineBreaksInsideAnswerElements() throws Exception {
+        mockMvc.perform(post("/api/questions")
+                        .header("Authorization", "Bearer " + loginToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new CreateBasicQuestionRequest(
+                                "Name two primary colors.",
+                                null,
+                                QuestionType.SET_ANSWER,
+                                List.of("Red\nBlue", "Yellow")))))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Set answers cannot contain line breaks."));
+    }
+
+    @Test
+    void setQuestionAttemptRejectsLineBreaksInsideAnswerElements() throws Exception {
+        String token = loginToken();
+
+        String createdResponse = mockMvc.perform(post("/api/questions")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new CreateBasicQuestionRequest(
+                                "Name two primary colors.",
+                                null,
+                                QuestionType.SET_ANSWER,
+                                List.of("Red", "Blue")))))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        BasicQuestionResponse created = objectMapper.readValue(createdResponse, BasicQuestionResponse.class);
+
+        mockMvc.perform(post("/api/questions/{questionId}/attempts", created.id())
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new AttemptBasicQuestionRequest(null, List.of("Red\r\nBlue", "Yellow")))))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Set answers cannot contain line breaks."));
+    }
+
+    @Test
     void questionEndpointsRejectMissingBearerToken() throws Exception {
         mockMvc.perform(post("/api/questions")
                         .contentType(MediaType.APPLICATION_JSON)

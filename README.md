@@ -66,7 +66,7 @@ curl -s -X POST http://localhost:8080/api/questions \
 ```
 
 
-Create a fixed-size set question, such as naming all OSI model layers. The number of accepted answers defines the number learners must submit, and attempts can provide the answers in any order:
+Create a fixed-size set question, such as naming all OSI model layers. The number of accepted answers defines the number learners must submit, and attempts can provide the answers in any order. Each answer must be supplied as its own array element; individual set-answer values cannot contain line breaks:
 
 ```sh
 curl -s -X POST http://localhost:8080/api/questions \

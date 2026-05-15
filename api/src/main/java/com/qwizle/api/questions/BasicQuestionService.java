@@ -164,6 +164,9 @@ public class BasicQuestionService {
             if (cleanedAnswer.isBlank()) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Set answers cannot be blank.");
             }
+            if (containsLineBreak(cleanedAnswer)) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Set answers cannot contain line breaks.");
+            }
             cleanedAnswers.add(cleanedAnswer);
         }
         return cleanedAnswers;
@@ -173,6 +176,10 @@ public class BasicQuestionService {
         if (normalizedSet(answers).size() != answers.size()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Set answers must be unique.");
         }
+    }
+
+    private boolean containsLineBreak(String value) {
+        return value.indexOf('\n') >= 0 || value.indexOf('\r') >= 0;
     }
 
     private Set<String> normalizedSet(List<String> answers) {
