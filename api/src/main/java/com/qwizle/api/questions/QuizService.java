@@ -33,7 +33,7 @@ public class QuizService {
 
     @Transactional
     public QuizResponse create(UserProfile user, CreateQuizRequest request) {
-        List<Long> questionIds = cleanQuestionIds(request.questionIds());
+        List<Long> questionIds = requireQuestionIds(request.questionIds());
         validateQuestionIds(questionIds);
 
         OffsetDateTime now = OffsetDateTime.now(clock);
@@ -121,11 +121,14 @@ public class QuizService {
                 .toList();
     }
 
-    private List<Long> cleanQuestionIds(List<Long> questionIds) {
+    private List<Long> requireQuestionIds(List<Long> questionIds) {
         if (questionIds == null) {
             return List.of();
         }
-        return questionIds.stream().filter(id -> id != null).toList();
+        if (questionIds.contains(null)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Quiz question IDs are required.");
+        }
+        return questionIds;
     }
 
     private void validateQuestionIds(List<Long> questionIds) {

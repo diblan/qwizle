@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.util.Arrays;
 import java.util.List;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -93,6 +94,25 @@ class QuizControllerTest {
                                 List.of(question.id())))))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("Choose at least two questions for the quiz."));
+    }
+
+    @Test
+    void createQuizRejectsNullQuestionIds() throws Exception {
+        String token = loginToken();
+        BasicQuestionResponse firstQuestion = createQuestion(token,
+                new CreateBasicQuestionRequest("First question?", "Answer"));
+        BasicQuestionResponse secondQuestion = createQuestion(token,
+                new CreateBasicQuestionRequest("Second question?", "Answer"));
+
+        mockMvc.perform(post("/api/quizzes")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new CreateQuizRequest(
+                                "Malformed quiz",
+                                null,
+                                Arrays.asList(firstQuestion.id(), null, secondQuestion.id())))))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Quiz question IDs are required."));
     }
 
     @Test

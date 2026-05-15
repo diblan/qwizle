@@ -4,6 +4,7 @@ import java.util.List;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 public record CreateQuizRequest(
@@ -15,5 +16,5 @@ public record CreateQuizRequest(
         String description,
 
         @NotEmpty(message = "Choose at least two questions for the quiz.")
-        List<Long> questionIds) {
+        List<@NotNull(message = "Quiz question IDs are required.") Long> questionIds) {
 }
