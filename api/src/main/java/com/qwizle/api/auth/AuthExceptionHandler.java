@@ -16,7 +16,11 @@ public class AuthExceptionHandler {
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ApiError> validation() {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiError("Email and password are required."));
+    public ResponseEntity<ApiError> validation(MethodArgumentNotValidException ex) {
+        String message = ex.getBindingResult().getFieldErrors().stream()
+                .findFirst()
+                .map(error -> error.getDefaultMessage() == null ? "Request validation failed." : error.getDefaultMessage())
+                .orElse("Request validation failed.");
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiError(message));
     }
 }
