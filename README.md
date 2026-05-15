@@ -1,6 +1,6 @@
 # Qwizle
 
-Qwizle is a daily learning and long-term retention app. This first full-stack slice includes a public homepage, a login page, a logged-in learner homepage, a Spring Boot authentication API, and Flyway-managed user/session tables.
+Qwizle is a daily learning and long-term retention app. This first full-stack slice includes a public homepage, a login page, a logged-in learner homepage, a Spring Boot authentication API, logged-in basic question creation/attempts, and Flyway-managed user/session/question tables.
 
 ## Local one-command run
 
@@ -54,6 +54,31 @@ Use the returned token with `/api/auth/me`:
 ```sh
 curl -s http://localhost:8080/api/auth/me \
   -H "Authorization: Bearer <token>"
+```
+
+Create a basic one-answer question (requires the returned bearer token):
+
+```sh
+curl -s -X POST http://localhost:8080/api/questions \
+  -H 'Content-Type: application/json' \
+  -H "Authorization: Bearer <token>" \
+  -d '{"question":"What does spaced repetition support?","answer":"Long-term retention"}'
+```
+
+List available questions (answers are intentionally hidden):
+
+```sh
+curl -s http://localhost:8080/api/questions \
+  -H "Authorization: Bearer <token>"
+```
+
+Attempt a question:
+
+```sh
+curl -s -X POST http://localhost:8080/api/questions/<question-id>/attempts \
+  -H 'Content-Type: application/json' \
+  -H "Authorization: Bearer <token>" \
+  -d '{"answer":"Long-term retention"}'
 ```
 
 ## Development checks
