@@ -1,0 +1,20 @@
+<div class="min-h-screen bg-slate-50">
+  <header class="border-b border-slate-200 bg-white">
+    <div class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
+      <a routerLink="/" class="text-xl font-bold text-slate-950" aria-label="Qwizle home">Qwizle</a>
+
+      <nav class="flex items-center gap-3 text-sm font-medium text-slate-700" aria-label="Primary navigation">
+        @if (auth.user(); as user) {
+          <a routerLink="/home" class="hover:text-slate-950">{{ user.displayName }}</a>
+          <button type="button" class="spartan-button spartan-button-secondary" (click)="auth.logout()">Log out</button>
+        } @else {
+          <a routerLink="/login" class="spartan-button spartan-button-primary">Log in</a>
+        }
+      </nav>
+    </div>
+  </header>
+
+  <main class="mx-auto max-w-6xl px-6 py-10">
+    <router-outlet />
+  </main>
+</div>

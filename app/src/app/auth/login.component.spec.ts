@@ -29,15 +29,16 @@ describe('LoginComponent', () => {
     fixture.detectChanges();
   });
 
-  it('renders an accessible polished login form and submits the login form', () => {
+  it('renders an accessible login form and submits the login form', () => {
     const compiled = fixture.nativeElement as HTMLElement;
 
     expect(compiled.textContent).toContain('learner@qwizle.test');
-    expect(compiled.querySelector('label[for="email"]')?.textContent).toContain('Email address');
+    expect(compiled.querySelector('label[for="email"]')?.textContent).toContain('Username or email');
     expect(compiled.querySelector('input#email')?.getAttribute('aria-describedby')).toContain('email-error');
     expect(compiled.querySelector('label[for="password"]')?.textContent).toContain('Password');
     expect(compiled.querySelector('input#password')?.getAttribute('aria-describedby')).toContain('password-error');
-    expect(Array.from(compiled.querySelectorAll('a')).some((link) => link.textContent?.includes('Back home'))).toBeTrue();
+    expect(Array.from(compiled.querySelectorAll('a')).some((link) => link.textContent?.includes('Forgot password?'))).toBeTrue();
+    expect(Array.from(compiled.querySelectorAll('a')).some((link) => link.textContent?.includes('Create one'))).toBeTrue();
 
     fixture.componentInstance.submit();
 

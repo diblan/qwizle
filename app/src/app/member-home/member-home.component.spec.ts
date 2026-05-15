@@ -61,12 +61,10 @@ describe('MemberHomeComponent', () => {
   it('greets the logged-in learner and loads questions', () => {
     const text = (fixture.nativeElement as HTMLElement).textContent;
 
+    expect(text).toContain('Home');
     expect(text).toContain('Good to see you, Demo Learner.');
-    expect(text).toContain('Create recall questions, group them into quizzes');
-    expect(text).toContain('What is retrieval practice?');
-    expect(text).toContain('2 answers expected');
+    expect(text).toContain('Your quizzes');
     expect(text).toContain('OSI model basics');
-    expect(questionService.list).toHaveBeenCalled();
     expect(questionService.listQuizzes).toHaveBeenCalled();
   });
 

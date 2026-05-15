@@ -18,6 +18,9 @@ This repository is AI-first: **the codebase is written and maintained by AI agen
 - **Database:** Postgres
 - **Frontend:** Angular
 
+## Frontend guidance
+- For frontend work, read and follow `FRONTEND.md`.
+
 ## Definition of done (applies to all features)
 A feature is done only when all are true:
 1. Tests are added or updated.
