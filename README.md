@@ -1,6 +1,6 @@
 # Qwizle
 
-Qwizle is a daily learning and long-term retention app. This first full-stack slice includes a public homepage, a login page, a logged-in learner homepage, a Spring Boot authentication API, logged-in basic question creation/attempts, and Flyway-managed user/session/question tables.
+Qwizle is a daily learning and long-term retention app. This first full-stack slice includes a public homepage, a login page, a logged-in learner homepage, a Spring Boot authentication API, logged-in one-answer and fixed-size set question creation/attempts, and Flyway-managed user/session/question tables.
 
 ## Local one-command run
 
@@ -65,6 +65,16 @@ curl -s -X POST http://localhost:8080/api/questions \
   -d '{"question":"What does spaced repetition support?","answer":"Long-term retention"}'
 ```
 
+
+Create a fixed-size set question, such as naming all OSI model layers. The number of accepted answers defines the number learners must submit, and attempts can provide the answers in any order:
+
+```sh
+curl -s -X POST http://localhost:8080/api/questions \
+  -H 'Content-Type: application/json' \
+  -H "Authorization: Bearer <token>" \
+  -d '{"question":"Name the layers of the OSI model.","type":"SET_ANSWER","answers":["Physical","Data Link","Network","Transport","Session","Presentation","Application"]}'
+```
+
 List available questions (answers are intentionally hidden):
 
 ```sh
@@ -72,13 +82,22 @@ curl -s http://localhost:8080/api/questions \
   -H "Authorization: Bearer <token>"
 ```
 
-Attempt a question:
+Attempt a one-answer question:
 
 ```sh
 curl -s -X POST http://localhost:8080/api/questions/<question-id>/attempts \
   -H 'Content-Type: application/json' \
   -H "Authorization: Bearer <token>" \
   -d '{"answer":"Long-term retention"}'
+```
+
+Attempt a set question:
+
+```sh
+curl -s -X POST http://localhost:8080/api/questions/<question-id>/attempts \
+  -H 'Content-Type: application/json' \
+  -H "Authorization: Bearer <token>" \
+  -d '{"answers":["Application","Presentation","Session","Transport","Network","Data Link","Physical"]}'
 ```
 
 ## Development checks

@@ -6,7 +6,7 @@ Angular frontend for Qwizle using Tailwind CSS and SpartanUI-style UI building b
 
 - `/` public homepage
 - `/login` login form
-- `/home` logged-in learner homepage guarded by local auth state
+- `/home` logged-in learner homepage guarded by local auth state, including one-answer and fixed-size set question creation/practice
 
 ## Run locally without Docker
 
