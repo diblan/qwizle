@@ -1,6 +1,6 @@
 # Qwizle
 
-Qwizle is a daily learning and long-term retention app. This first full-stack slice includes a public homepage, a login page, a logged-in learner homepage, a Spring Boot authentication API, logged-in one-answer and fixed-size set question creation/attempts, and Flyway-managed user/session/question tables.
+Qwizle is a daily learning and long-term retention app. This first full-stack slice includes a public homepage, a login page, a logged-in learner homepage, a Spring Boot authentication API, logged-in one-answer and fixed-size set question creation/attempts, quiz creation from existing questions, and Flyway-managed user/session/question tables.
 
 ## Local one-command run
 
@@ -79,6 +79,22 @@ List available questions (answers are intentionally hidden):
 
 ```sh
 curl -s http://localhost:8080/api/questions \
+  -H "Authorization: Bearer <token>"
+```
+
+Create a quiz from existing questions. For an OSI model quiz, create the TCP layer question and OSI layer set question first, then pass their returned IDs in the desired order:
+
+```sh
+curl -s -X POST http://localhost:8080/api/quizzes \
+  -H 'Content-Type: application/json' \
+  -H "Authorization: Bearer <token>" \
+  -d '{"title":"OSI model basics","description":"TCP placement and all seven layers.","questionIds":[<tcp-question-id>,<layers-question-id>]}'
+```
+
+List available quizzes with their ordered questions (answers are intentionally hidden):
+
+```sh
+curl -s http://localhost:8080/api/quizzes \
   -H "Authorization: Bearer <token>"
 ```
 

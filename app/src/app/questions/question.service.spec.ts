@@ -76,4 +76,27 @@ describe('QuestionService', () => {
     expect(request.request.body).toEqual({ answers: ['Physical', 'Data Link'] });
     request.flush({ questionId: 3, submittedAnswers: ['Physical', 'Data Link'], correct: true, attemptedAt: '2026-05-15T00:00:00Z' });
   });
+
+  it('lists quizzes with their questions', () => {
+    service.listQuizzes().subscribe((quizzes) => {
+      expect(quizzes[0].title).toBe('OSI model basics');
+      expect(quizzes[0].questions[0].question).toBe('Where does TCP live?');
+    });
+
+    const request = httpTesting.expectOne(`${environment.apiBaseUrl}/quizzes`);
+    expect(request.request.method).toBe('GET');
+    request.flush([{ id: 4, title: 'OSI model basics', description: 'Layer recall.', questionCount: 1, questions: [{ id: 3, question: 'Where does TCP live?', type: 'SINGLE_ANSWER', solutionCount: 1, createdByUserId: 1, createdAt: '2026-05-15T00:00:00Z' }], createdByUserId: 1, createdAt: '2026-05-15T00:00:00Z' }]);
+  });
+
+  it('creates a quiz from existing question ids', () => {
+    service.createQuiz('OSI model basics', 'Layer recall.', [2, 3]).subscribe((quiz) => {
+      expect(quiz.questionCount).toBe(2);
+    });
+
+    const request = httpTesting.expectOne(`${environment.apiBaseUrl}/quizzes`);
+    expect(request.request.method).toBe('POST');
+    expect(request.request.body).toEqual({ title: 'OSI model basics', description: 'Layer recall.', questionIds: [2, 3] });
+    request.flush({ id: 4, title: 'OSI model basics', description: 'Layer recall.', questionCount: 2, questions: [], createdByUserId: 1, createdAt: '2026-05-15T00:00:00Z' });
+  });
+
 });

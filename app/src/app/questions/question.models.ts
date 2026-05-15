@@ -16,3 +16,13 @@ export interface BasicQuestionAttempt {
   correct: boolean;
   attemptedAt: string;
 }
+
+export interface Quiz {
+  id: number;
+  title: string;
+  description?: string;
+  questionCount: number;
+  questions: BasicQuestion[];
+  createdByUserId: number;
+  createdAt: string;
+}
