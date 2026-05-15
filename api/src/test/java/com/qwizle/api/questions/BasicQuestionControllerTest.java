@@ -1,12 +1,15 @@
 package com.qwizle.api.questions;
 
+import static org.hamcrest.Matchers.emptyString;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.emptyString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import java.util.List;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.qwizle.api.auth.LoginRequest;
@@ -42,6 +45,8 @@ class BasicQuestionControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").exists())
                 .andExpect(jsonPath("$.question").value("What is the capital of France?"))
+                .andExpect(jsonPath("$.type").value("SINGLE_ANSWER"))
+                .andExpect(jsonPath("$.solutionCount").value(1))
                 .andExpect(jsonPath("$.createdByUserId").value(1))
                 .andExpect(jsonPath("$.createdAt", not(emptyString())))
                 .andExpect(jsonPath("$.answer").doesNotExist())
@@ -54,9 +59,11 @@ class BasicQuestionControllerTest {
         mockMvc.perform(get("/api/questions")
                         .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$", hasSize(greaterThanOrEqualTo(1))))
                 .andExpect(jsonPath("$[0].id").value(created.id()))
                 .andExpect(jsonPath("$[0].question").value("What is the capital of France?"))
+                .andExpect(jsonPath("$[0].type").value("SINGLE_ANSWER"))
+                .andExpect(jsonPath("$[0].solutionCount").value(1))
                 .andExpect(jsonPath("$[0].answer").doesNotExist());
 
         mockMvc.perform(post("/api/questions/{questionId}/attempts", created.id())
@@ -66,8 +73,116 @@ class BasicQuestionControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.questionId").value(created.id()))
                 .andExpect(jsonPath("$.submittedAnswer").value("paris"))
+                .andExpect(jsonPath("$.submittedAnswers", hasSize(0)))
                 .andExpect(jsonPath("$.correct").value(true))
                 .andExpect(jsonPath("$.attemptedAt", not(emptyString())));
+    }
+
+
+    @Test
+    void loggedInUserCanCreateAndAttemptSetQuestionInAnyOrder() throws Exception {
+        String token = loginToken();
+
+        String createdResponse = mockMvc.perform(post("/api/questions")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new CreateBasicQuestionRequest(
+                                "Name the layers of the OSI model.",
+                                null,
+                                QuestionType.SET_ANSWER,
+                                List.of("Physical", "Data Link", "Network", "Transport", "Session", "Presentation", "Application")))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").exists())
+                .andExpect(jsonPath("$.question").value("Name the layers of the OSI model."))
+                .andExpect(jsonPath("$.type").value("SET_ANSWER"))
+                .andExpect(jsonPath("$.solutionCount").value(7))
+                .andExpect(jsonPath("$.answer").doesNotExist())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        BasicQuestionResponse created = objectMapper.readValue(createdResponse, BasicQuestionResponse.class);
+
+        mockMvc.perform(post("/api/questions/{questionId}/attempts", created.id())
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new AttemptBasicQuestionRequest(
+                                null,
+                                List.of("application", "presentation", "session", "transport", "network", "data link", "physical")))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.questionId").value(created.id()))
+                .andExpect(jsonPath("$.submittedAnswer").doesNotExist())
+                .andExpect(jsonPath("$.submittedAnswers", hasSize(7)))
+                .andExpect(jsonPath("$.correct").value(true))
+                .andExpect(jsonPath("$.attemptedAt", not(emptyString())));
+    }
+
+    @Test
+    void setQuestionAttemptRequiresConfiguredNumberOfAnswers() throws Exception {
+        String token = loginToken();
+
+        String createdResponse = mockMvc.perform(post("/api/questions")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new CreateBasicQuestionRequest(
+                                "Name two primary colors.",
+                                null,
+                                QuestionType.SET_ANSWER,
+                                List.of("Red", "Blue")))))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        BasicQuestionResponse created = objectMapper.readValue(createdResponse, BasicQuestionResponse.class);
+
+        mockMvc.perform(post("/api/questions/{questionId}/attempts", created.id())
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new AttemptBasicQuestionRequest(null, List.of("Red")))))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Submit exactly 2 answers."));
+    }
+
+    @Test
+    void setQuestionCreationRejectsLineBreaksInsideAnswerElements() throws Exception {
+        mockMvc.perform(post("/api/questions")
+                        .header("Authorization", "Bearer " + loginToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new CreateBasicQuestionRequest(
+                                "Name two primary colors.",
+                                null,
+                                QuestionType.SET_ANSWER,
+                                List.of("Red\nBlue", "Yellow")))))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Set answers cannot contain line breaks."));
+    }
+
+    @Test
+    void setQuestionAttemptRejectsLineBreaksInsideAnswerElements() throws Exception {
+        String token = loginToken();
+
+        String createdResponse = mockMvc.perform(post("/api/questions")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new CreateBasicQuestionRequest(
+                                "Name two primary colors.",
+                                null,
+                                QuestionType.SET_ANSWER,
+                                List.of("Red", "Blue")))))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        BasicQuestionResponse created = objectMapper.readValue(createdResponse, BasicQuestionResponse.class);
+
+        mockMvc.perform(post("/api/questions/{questionId}/attempts", created.id())
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new AttemptBasicQuestionRequest(null, List.of("Red\r\nBlue", "Yellow")))))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Set answers cannot contain line breaks."));
     }
 
     @Test

@@ -8,6 +8,8 @@ Spring Boot REST API for Qwizle.
 - Demo user seeding through `DemoUserSeeder`.
 - `POST /api/auth/login` for email/password login.
 - `GET /api/auth/me` for looking up the logged-in user from an opaque bearer token.
+- `POST /api/questions` for one-answer (`SINGLE_ANSWER`) and fixed-size set (`SET_ANSWER`) recall questions.
+- `POST /api/questions/{questionId}/attempts` for checking either a single `answer` or an order-insensitive set of `answers`.
 
 ## Run locally without Docker
 
