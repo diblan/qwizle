@@ -2,58 +2,45 @@
 
 This repository is AI-first: **the codebase is written and maintained by AI agents** with human product direction.
 
-## Product direction
+Use this file as the short entry point. Durable product, design, quality, reliability, and security guidance lives in `docs/`.
 
-### Goal
-- **Qwizle is an app for learning and long-term retention.**
-- It should feel like a daily brain-sharpening routine (inspired by Wordle-like cadence and Duolingo-like habit loops).
+## Read first
 
-### Non-goals (for now)
-- No detailed learner track record dashboards yet.
-- No weighted question reappearance logic yet.
+- `docs/index.md` — documentation map for humans and agents.
+- `docs/product-specs/product-vision.md` — product goal, current slice, and non-goals.
+- `ARCHITECTURE.md` — monorepo boundaries and current runtime architecture.
+- `FRONTEND.md` — Angular and UI implementation rules.
+- `docs/DESIGN.md` — visual and UX direction.
+- `docs/PRODUCT_SENSE.md` — product decision guidance when requirements are underspecified.
+- `docs/QUALITY_SCORE.md` — quality rubric and known gaps.
+- `docs/RELIABILITY.md` — local run, checks, migrations, and workflow reliability.
+- `docs/SECURITY.md` — current security posture and future security rules.
+- `PLANS.md` — ExecPlan requirements for complex features or significant refactors.
 
 ## Primary stack
+
 - **Backend:** Spring Boot
 - **Database migrations:** Flyway
 - **Database:** Postgres
 - **Frontend:** Angular
 
-## Frontend guidance
-- For frontend work, read and follow `FRONTEND.md`.
-
 ## Definition of done (applies to all features)
+
 A feature is done only when all are true:
+
 1. Tests are added or updated.
 2. Documentation is updated.
 3. The app runs locally with one command.
 4. CI is green.
 
-## Harness-first engineering expectations
-To keep AI-generated code reliable, every change should be built around a testable harness:
-
-1. **Executable checks first**
-   - Prefer creating or updating tests/checks that fail before implementation and pass after.
-2. **Small, verifiable increments**
-   - Keep changes scoped and easy to validate.
-3. **Deterministic workflows**
-   - Use repeatable commands/scripts for build, test, lint, and run.
-4. **Fast feedback loops**
-   - Run relevant tests locally before finishing work.
-5. **Evidence in PRs**
-   - Summarize what changed, why, and which checks passed.
-
 ## ExecPlans
 
-When writing complex features or significant refactors, use an ExecPlan (as described in `.agent/PLANS.md`) from design to implementation.
+When writing complex features or significant refactors, use an ExecPlan as described in `PLANS.md`. Store plans under `docs/exec-plans/` and keep their living sections current.
 
 ## Working agreements for agents
+
 - Keep architecture simple and evolvable.
 - Prefer clear naming and maintainable code over cleverness.
 - Update docs alongside behavior changes.
 - If introducing new tools/scripts, document exact usage.
 - If blocked by missing infrastructure, leave clear TODOs and constraints.
-
-## Initial product framing
-- Qwizle will start with daily learning challenges.
-- Difficulty can evolve over time and previously failed content can reappear in future iterations.
-- Implement advanced progression logic only after the current non-goals are promoted.
