@@ -39,6 +39,9 @@
         },
         "serve": {
           "builder": "@angular/build:dev-server",
+          "options": {
+            "proxyConfig": "proxy.conf.json"
+          },
           "configurations": {
             "production": { "buildTarget": "qwizle-app:build:production" },
             "development": { "buildTarget": "qwizle-app:build:development" }

@@ -15,7 +15,7 @@ npm install
 npm start
 ```
 
-The app expects the API at `http://localhost:8080/api`.
+The app calls `/api` and the Angular dev server proxies those requests to `http://localhost:8080`. Start the Spring Boot API before signing in.
 
 ## Test and build
 
