@@ -21,11 +21,13 @@ Demo credentials:
 - Email: `learner@qwizle.test`
 - Password: `qwizle123`
 
-The stack exposes:
+The local stack exposes:
 
 - Angular frontend: <http://localhost:4200>
 - Spring Boot API: <http://localhost:8080>
 - Postgres: `localhost:5432` with database/user/password `qwizle`
+
+The frontend reads its API base URL from runtime config. In Docker Compose, `QWIZLE_API_BASE_URL` defaults to `http://localhost:8080/api` so the browser calls the API directly and the API handles CORS.
 
 Stop the stack:
 
@@ -41,25 +43,31 @@ docker compose down -v
 
 ## REST API quick checks
 
+Set the local API base URL once for the examples below:
+
+```sh
+API_BASE_URL=http://localhost:8080/api
+```
+
 Log in:
 
 ```sh
-curl -s -X POST http://localhost:8080/api/auth/login \
+curl -s -X POST "$API_BASE_URL/auth/login" \
   -H 'Content-Type: application/json' \
   -d '{"email":"learner@qwizle.test","password":"qwizle123"}'
 ```
 
-Use the returned token with `/api/auth/me`:
+Use the returned token with the current-user endpoint:
 
 ```sh
-curl -s http://localhost:8080/api/auth/me \
+curl -s "$API_BASE_URL/auth/me" \
   -H "Authorization: Bearer <token>"
 ```
 
 Create a single-answer question (requires the returned bearer token):
 
 ```sh
-curl -s -X POST http://localhost:8080/api/questions \
+curl -s -X POST "$API_BASE_URL/questions" \
   -H 'Content-Type: application/json' \
   -H "Authorization: Bearer <token>" \
   -d '{"type":"SINGLE_ANSWER","prompt":{"text":"What does spaced repetition support?"},"definition":{"acceptedAnswers":[{"text":"Long-term retention"}]}}'
@@ -69,7 +77,7 @@ curl -s -X POST http://localhost:8080/api/questions \
 Create a required-set multiple-answer question, such as naming all OSI model layers. The number of configured answers defines the number learners must submit, and attempts can provide the answers in any order:
 
 ```sh
-curl -s -X POST http://localhost:8080/api/questions \
+curl -s -X POST "$API_BASE_URL/questions" \
   -H 'Content-Type: application/json' \
   -H "Authorization: Bearer <token>" \
   -d '{"type":"MULTIPLE_ANSWER","prompt":{"text":"Name the layers of the OSI model."},"definition":{"mode":"REQUIRED_SET","answers":[{"id":"physical","text":"Physical"},{"id":"data-link","text":"Data Link"},{"id":"network","text":"Network"},{"id":"transport","text":"Transport"},{"id":"session","text":"Session"},{"id":"presentation","text":"Presentation"},{"id":"application","text":"Application"}]}}'
@@ -78,14 +86,14 @@ curl -s -X POST http://localhost:8080/api/questions \
 List available questions (answers are intentionally hidden):
 
 ```sh
-curl -s http://localhost:8080/api/questions \
+curl -s "$API_BASE_URL/questions" \
   -H "Authorization: Bearer <token>"
 ```
 
 Create a quiz from existing questions. For an OSI model quiz, create the TCP layer question and OSI layer question first, then pass their returned IDs in the desired order:
 
 ```sh
-curl -s -X POST http://localhost:8080/api/quizzes \
+curl -s -X POST "$API_BASE_URL/quizzes" \
   -H 'Content-Type: application/json' \
   -H "Authorization: Bearer <token>" \
   -d '{"title":"OSI model basics","description":"TCP placement and all seven layers.","questionIds":[<tcp-question-id>,<layers-question-id>]}'
@@ -94,14 +102,14 @@ curl -s -X POST http://localhost:8080/api/quizzes \
 List available quizzes with their ordered questions (answers are intentionally hidden):
 
 ```sh
-curl -s http://localhost:8080/api/quizzes \
+curl -s "$API_BASE_URL/quizzes" \
   -H "Authorization: Bearer <token>"
 ```
 
 Attempt a one-answer question:
 
 ```sh
-curl -s -X POST http://localhost:8080/api/questions/<question-id>/attempts \
+curl -s -X POST "$API_BASE_URL/questions/<question-id>/attempts" \
   -H 'Content-Type: application/json' \
   -H "Authorization: Bearer <token>" \
   -d '{"type":"SINGLE_ANSWER","response":{"text":"Long-term retention"}}'
@@ -110,7 +118,7 @@ curl -s -X POST http://localhost:8080/api/questions/<question-id>/attempts \
 Attempt a multiple-answer question:
 
 ```sh
-curl -s -X POST http://localhost:8080/api/questions/<question-id>/attempts \
+curl -s -X POST "$API_BASE_URL/questions/<question-id>/attempts" \
   -H 'Content-Type: application/json' \
   -H "Authorization: Bearer <token>" \
   -d '{"type":"MULTIPLE_ANSWER","response":{"answers":["Application","Presentation","Session","Transport","Network","Data Link","Physical"]}}'

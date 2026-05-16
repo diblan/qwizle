@@ -22,7 +22,9 @@ The first runnable product slice is a login-enabled learning shell:
 - The Spring Boot API owns authentication endpoints under `/api/auth`, authenticated unified question endpoints under `/api/questions`, and quiz endpoints under `/api/quizzes`.
 - Flyway owns database schema creation for `users`, `user_sessions`, `questions`, `question_tags`, `question_attempts`, `quizzes`, and `quiz_questions`.
 - Postgres is the production-style database used by `docker compose up --build`; the API defaults to an H2 file database only for quick local backend development without Docker.
+- The frontend and API are deployable as separate applications. The frontend loads its API base URL from `qwizle-config.json` at runtime, and the browser calls the API origin directly.
 - The frontend stores the backend's opaque bearer token in browser `localStorage` and sends it to API requests through an Angular HTTP interceptor. Question endpoints also validate the bearer token on the backend before creating, listing, or attempting questions and creating or listing quizzes.
+- Cross-origin access is an API responsibility. Configure allowed frontend origins with `QWIZLE_CORS_ALLOWED_ORIGIN_PATTERNS`; do not depend on an Angular dev-server proxy for normal operation.
 
 ## Rationale
 

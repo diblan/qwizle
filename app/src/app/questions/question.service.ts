@@ -1,31 +1,34 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
-import { environment } from '../../environments/environment';
+import { apiUrl, RUNTIME_CONFIG, RuntimeConfig } from '../config/runtime-config';
 import { CreateQuestionRequest, Question, QuestionAttempt, QuestionSubmission, Quiz } from './question.models';
 
 @Injectable({ providedIn: 'root' })
 export class QuestionService {
-  constructor(private readonly http: HttpClient) {}
+  constructor(
+    private readonly http: HttpClient,
+    @Inject(RUNTIME_CONFIG) private readonly config: RuntimeConfig,
+  ) {}
 
   list(): Observable<Question[]> {
-    return this.http.get<Question[]>(`${environment.apiBaseUrl}/questions`);
+    return this.http.get<Question[]>(apiUrl(this.config, '/questions'));
   }
 
   create(request: CreateQuestionRequest): Observable<Question> {
-    return this.http.post<Question>(`${environment.apiBaseUrl}/questions`, request);
+    return this.http.post<Question>(apiUrl(this.config, '/questions'), request);
   }
 
   attempt(questionId: number, submission: QuestionSubmission): Observable<QuestionAttempt> {
-    return this.http.post<QuestionAttempt>(`${environment.apiBaseUrl}/questions/${questionId}/attempts`, submission);
+    return this.http.post<QuestionAttempt>(apiUrl(this.config, `/questions/${questionId}/attempts`), submission);
   }
 
   listQuizzes(): Observable<Quiz[]> {
-    return this.http.get<Quiz[]>(`${environment.apiBaseUrl}/quizzes`);
+    return this.http.get<Quiz[]>(apiUrl(this.config, '/quizzes'));
   }
 
   createQuiz(title: string, description: string, questionIds: number[]): Observable<Quiz> {
-    return this.http.post<Quiz>(`${environment.apiBaseUrl}/quizzes`, { title, description, questionIds });
+    return this.http.post<Quiz>(apiUrl(this.config, '/quizzes'), { title, description, questionIds });
   }
 }

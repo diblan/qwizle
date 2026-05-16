@@ -1,9 +1,9 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable, signal } from '@angular/core';
+import { Inject, Injectable, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { Observable, catchError, map, of, tap } from 'rxjs';
 
-import { environment } from '../../environments/environment';
+import { apiUrl, RUNTIME_CONFIG, RuntimeConfig } from '../config/runtime-config';
 import { LoginResponse, UserProfile } from './auth.models';
 
 const TOKEN_KEY = 'qwizle.auth.token';
@@ -13,10 +13,14 @@ const USER_KEY = 'qwizle.auth.user';
 export class AuthService {
   readonly user = signal<UserProfile | null>(this.readStoredUser());
 
-  constructor(private readonly http: HttpClient, private readonly router: Router) {}
+  constructor(
+    private readonly http: HttpClient,
+    private readonly router: Router,
+    @Inject(RUNTIME_CONFIG) private readonly config: RuntimeConfig,
+  ) {}
 
   login(email: string, password: string): Observable<UserProfile> {
-    return this.http.post<LoginResponse>(`${environment.apiBaseUrl}/auth/login`, { email, password }).pipe(
+    return this.http.post<LoginResponse>(apiUrl(this.config, '/auth/login'), { email, password }).pipe(
       tap((response) => this.storeSession(response.token, response.user)),
       map((response) => response.user),
     );
@@ -27,7 +31,7 @@ export class AuthService {
       return of(null);
     }
 
-    return this.http.get<UserProfile>(`${environment.apiBaseUrl}/auth/me`).pipe(
+    return this.http.get<UserProfile>(apiUrl(this.config, '/auth/me')).pipe(
       tap((user) => this.storeUser(user)),
       catchError(() => {
         this.clearSession();

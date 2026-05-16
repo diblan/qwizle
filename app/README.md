@@ -15,7 +15,15 @@ npm install
 npm start
 ```
 
-The app calls `/api` and the Angular dev server proxies those requests to `http://localhost:8080`. Start the Spring Boot API before signing in.
+The app loads runtime configuration from `public/qwizle-config.json` before Angular bootstraps. By default, that file points the browser at `http://localhost:8080/api`.
+
+For a different API host, change `public/qwizle-config.json` or generate it with:
+
+```sh
+QWIZLE_API_BASE_URL=https://api.example.com/api npm run write:config
+```
+
+The browser calls the API directly. Cross-origin access is handled by backend CORS configuration, not by the Angular dev server.
 
 ## Test and build
 

@@ -2,8 +2,10 @@ import { TestBed } from '@angular/core/testing';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideHttpClient } from '@angular/common/http';
 
-import { environment } from '../../environments/environment';
+import { RUNTIME_CONFIG } from '../config/runtime-config';
 import { QuestionService } from './question.service';
+
+const apiBaseUrl = 'https://api.example.test/api';
 
 describe('QuestionService', () => {
   let service: QuestionService;
@@ -11,7 +13,12 @@ describe('QuestionService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [QuestionService, provideHttpClient(), provideHttpClientTesting()],
+      providers: [
+        QuestionService,
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        { provide: RUNTIME_CONFIG, useValue: { apiBaseUrl } },
+      ],
     });
 
     service = TestBed.inject(QuestionService);
@@ -28,7 +35,7 @@ describe('QuestionService', () => {
       expect(questions[0].type).toBe('SINGLE_ANSWER');
     });
 
-    const request = httpTesting.expectOne(`${environment.apiBaseUrl}/questions`);
+    const request = httpTesting.expectOne(`${apiBaseUrl}/questions`);
     expect(request.request.method).toBe('GET');
     request.flush([questionResponse(1, 'What is retention?')]);
   });
@@ -44,7 +51,7 @@ describe('QuestionService', () => {
       expect(question.id).toBe(2);
     });
 
-    const request = httpTesting.expectOne(`${environment.apiBaseUrl}/questions`);
+    const request = httpTesting.expectOne(`${apiBaseUrl}/questions`);
     expect(request.request.method).toBe('POST');
     expect(request.request.body).toEqual(body);
     request.flush(questionResponse(2, 'Question?'));
@@ -56,7 +63,7 @@ describe('QuestionService', () => {
       expect(attempt.correct).toBeTrue();
     });
 
-    const request = httpTesting.expectOne(`${environment.apiBaseUrl}/questions/2/attempts`);
+    const request = httpTesting.expectOne(`${apiBaseUrl}/questions/2/attempts`);
     expect(request.request.method).toBe('POST');
     expect(request.request.body).toEqual(submission);
     request.flush({ attemptId: 1, questionId: 2, correct: true, score: 1, maxScore: 1, feedback: { message: 'Correct.' }, attemptedAt: '2026-05-15T00:00:00Z' });
@@ -68,7 +75,7 @@ describe('QuestionService', () => {
       expect(quizzes[0].questions[0].prompt.text).toBe('Where does TCP live?');
     });
 
-    const request = httpTesting.expectOne(`${environment.apiBaseUrl}/quizzes`);
+    const request = httpTesting.expectOne(`${apiBaseUrl}/quizzes`);
     expect(request.request.method).toBe('GET');
     request.flush([{ id: 4, title: 'OSI model basics', description: 'Layer recall.', questionCount: 1, questions: [questionResponse(3, 'Where does TCP live?')], createdByUserId: 1, createdAt: '2026-05-15T00:00:00Z' }]);
   });
@@ -78,7 +85,7 @@ describe('QuestionService', () => {
       expect(quiz.questionCount).toBe(2);
     });
 
-    const request = httpTesting.expectOne(`${environment.apiBaseUrl}/quizzes`);
+    const request = httpTesting.expectOne(`${apiBaseUrl}/quizzes`);
     expect(request.request.method).toBe('POST');
     expect(request.request.body).toEqual({ title: 'OSI model basics', description: 'Layer recall.', questionIds: [2, 3] });
     request.flush({ id: 4, title: 'OSI model basics', description: 'Layer recall.', questionCount: 2, questions: [], createdByUserId: 1, createdAt: '2026-05-15T00:00:00Z' });

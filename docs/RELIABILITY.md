@@ -12,11 +12,13 @@ docker compose up --build
 
 Then open `http://localhost:4200`.
 
-The stack exposes:
+The local Docker stack exposes:
 
 - Angular frontend: `http://localhost:4200`.
 - Spring Boot API: `http://localhost:8080`.
 - Postgres: `localhost:5432` with database, username, and password `qwizle`.
+
+The frontend gets its API base URL from runtime configuration. Docker Compose writes `public/qwizle-config.json` from `QWIZLE_API_BASE_URL`, which defaults to `http://localhost:8080/api` for local browser traffic.
 
 Stop the stack with:
 
@@ -68,7 +70,7 @@ npm test
 npm run build
 ```
 
-The frontend expects the API at `http://localhost:8080/api`.
+The frontend calls the configured API base URL directly. For local development, `public/qwizle-config.json` should point to `http://localhost:8080/api`. For deployed environments, set that file or `QWIZLE_API_BASE_URL` to the deployed API origin and configure the API's `QWIZLE_CORS_ALLOWED_ORIGIN_PATTERNS` to include the frontend origin.
 
 ## Documentation Reliability
 

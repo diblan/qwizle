@@ -3,8 +3,10 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 
-import { environment } from '../../environments/environment';
+import { RUNTIME_CONFIG } from '../config/runtime-config';
 import { AuthService } from './auth.service';
+
+const apiBaseUrl = 'https://api.example.test/api';
 
 describe('AuthService', () => {
   let service: AuthService;
@@ -13,7 +15,12 @@ describe('AuthService', () => {
   beforeEach(() => {
     localStorage.clear();
     TestBed.configureTestingModule({
-      providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        provideRouter([]),
+        { provide: RUNTIME_CONFIG, useValue: { apiBaseUrl } },
+      ],
     });
     service = TestBed.inject(AuthService);
     http = TestBed.inject(HttpTestingController);
@@ -31,7 +38,7 @@ describe('AuthService', () => {
       expect(localStorage.getItem('qwizle.auth.token')).toBe('demo-token');
     });
 
-    const request = http.expectOne(`${environment.apiBaseUrl}/auth/login`);
+    const request = http.expectOne(`${apiBaseUrl}/auth/login`);
     expect(request.request.method).toBe('POST');
     request.flush({
       token: 'demo-token',
@@ -47,7 +54,7 @@ describe('AuthService', () => {
       expect(service.user()?.displayName).toBe('Demo Learner');
     });
 
-    const request = http.expectOne(`${environment.apiBaseUrl}/auth/me`);
+    const request = http.expectOne(`${apiBaseUrl}/auth/me`);
     expect(request.request.method).toBe('GET');
     request.flush({ id: 1, email: 'learner@qwizle.test', displayName: 'Demo Learner' });
   });

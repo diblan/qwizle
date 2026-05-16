@@ -23,7 +23,7 @@ The default profile uses a local H2 database file so the API can run without Pos
 mvn spring-boot:run
 ```
 
-Local browser clients are allowed by default from `http://localhost:*`, `http://127.0.0.1:*`, and `http://[::1]:*`. Override this with `QWIZLE_CORS_ALLOWED_ORIGIN_PATTERNS` when a different frontend origin needs API access.
+Local browser clients are allowed by default from `http://localhost:*`, `http://127.0.0.1:*`, and `http://[::1]:*`. Override this with `QWIZLE_CORS_ALLOWED_ORIGIN_PATTERNS` when a different frontend origin needs API access, for example `https://app.example.com`.
 
 For Postgres, set these environment variables before starting:
 

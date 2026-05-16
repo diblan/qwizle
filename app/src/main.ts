@@ -5,10 +5,12 @@ import { provideRouter } from '@angular/router';
 import { AppComponent } from './app/app.component';
 import { routes } from './app/app.routes';
 import { authInterceptor } from './app/auth/auth.interceptor';
+import { loadRuntimeConfig, RUNTIME_CONFIG } from './app/config/runtime-config';
 
-bootstrapApplication(AppComponent, {
+loadRuntimeConfig().then((runtimeConfig) => bootstrapApplication(AppComponent, {
   providers: [
     provideRouter(routes),
     provideHttpClient(withInterceptors([authInterceptor])),
+    { provide: RUNTIME_CONFIG, useValue: runtimeConfig },
   ],
-}).catch((err) => console.error(err));
+})).catch((err) => console.error(err));
