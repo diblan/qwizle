@@ -14,7 +14,7 @@ server:
 
 qwizle:
   cors:
-    allowed-origins: ${QWIZLE_CORS_ALLOWED_ORIGINS:http://localhost:4200}
+    allowed-origin-patterns: ${QWIZLE_CORS_ALLOWED_ORIGIN_PATTERNS:http://localhost:*,http://127.0.0.1:*,http://[::1]:*}
   demo-user:
     email: ${QWIZLE_DEMO_EMAIL:learner@qwizle.test}
     password: ${QWIZLE_DEMO_PASSWORD:qwizle123}
