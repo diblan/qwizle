@@ -6,7 +6,7 @@ Angular frontend for Qwizle using Bootstrap classes and light component SCSS. Th
 
 - `/` public homepage
 - `/login` standalone login page with a responsive Bootstrap form
-- `/home` logged-in learner homepage guarded by local auth state, including one-answer and fixed-size set question creation/practice
+- `/home` logged-in learner homepage guarded by local auth state, including unified question creation/practice for single-answer, multiple-answer, multiple-choice, and match questions
 
 ## Run locally without Docker
 

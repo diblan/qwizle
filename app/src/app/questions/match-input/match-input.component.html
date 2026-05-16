@@ -1,0 +1,18 @@
+<div class="d-grid gap-3">
+  @for (leftItem of interaction.leftItems; track leftItem.id) {
+    <div class="match-row">
+      <span>{{ leftItem.content.text }}</span>
+      <select
+        class="form-select"
+        [(ngModel)]="selections[leftItem.id]"
+        (ngModelChange)="update()"
+        [attr.aria-label]="'Match ' + leftItem.content.text"
+      >
+        <option value="">Choose match</option>
+        @for (rightItem of interaction.rightItems; track rightItem.id) {
+          <option [value]="rightItem.id">{{ rightItem.content.text }}</option>
+        }
+      </select>
+    </div>
+  }
+</div>

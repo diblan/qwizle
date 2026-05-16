@@ -1,0 +1,24 @@
+<fieldset class="d-grid gap-2">
+  <legend class="form-label mb-1">Options</legend>
+  @for (option of interaction.options; track option.id) {
+    <label class="choice-row">
+      @if (interaction.selectionMode === 'SINGLE') {
+        <input
+          class="form-check-input"
+          type="radio"
+          name="choice"
+          [checked]="selectedIds.has(option.id)"
+          (change)="setSingle(option.id)"
+        />
+      } @else {
+        <input
+          class="form-check-input"
+          type="checkbox"
+          [checked]="selectedIds.has(option.id)"
+          (change)="toggleMultiple(option.id, $any($event.target).checked)"
+        />
+      }
+      <span>{{ option.content.text }}</span>
+    </label>
+  }
+</fieldset>

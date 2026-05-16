@@ -3,6 +3,7 @@ declare function beforeEach(action: () => void | Promise<void>): void;
 declare function afterEach(action: () => void | Promise<void>): void;
 declare function it(expectation: string, assertion?: () => void | Promise<void>): void;
 declare function expect(actual: unknown): any;
+declare function spyOn<T, K extends keyof T>(object: T, method: K): jasmine.Spy<T[K] extends (...args: any[]) => any ? T[K] : never>;
 
 declare namespace jasmine {
   interface Spy<Fn extends (...args: any[]) => any = (...args: any[]) => any> {

@@ -3,26 +3,22 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { environment } from '../../environments/environment';
-import { BasicQuestion, BasicQuestionAttempt, QuestionType, Quiz } from './question.models';
+import { CreateQuestionRequest, Question, QuestionAttempt, QuestionSubmission, Quiz } from './question.models';
 
 @Injectable({ providedIn: 'root' })
 export class QuestionService {
   constructor(private readonly http: HttpClient) {}
 
-  list(): Observable<BasicQuestion[]> {
-    return this.http.get<BasicQuestion[]>(`${environment.apiBaseUrl}/questions`);
+  list(): Observable<Question[]> {
+    return this.http.get<Question[]>(`${environment.apiBaseUrl}/questions`);
   }
 
-  create(question: string, answer: string | string[], type: QuestionType = 'SINGLE_ANSWER'): Observable<BasicQuestion> {
-    const body = type === 'SET_ANSWER'
-      ? { question, type, answers: answer as string[] }
-      : { question, type, answer: answer as string };
-    return this.http.post<BasicQuestion>(`${environment.apiBaseUrl}/questions`, body);
+  create(request: CreateQuestionRequest): Observable<Question> {
+    return this.http.post<Question>(`${environment.apiBaseUrl}/questions`, request);
   }
 
-  attempt(questionId: number, answer: string | string[]): Observable<BasicQuestionAttempt> {
-    const body = Array.isArray(answer) ? { answers: answer } : { answer };
-    return this.http.post<BasicQuestionAttempt>(`${environment.apiBaseUrl}/questions/${questionId}/attempts`, body);
+  attempt(questionId: number, submission: QuestionSubmission): Observable<QuestionAttempt> {
+    return this.http.post<QuestionAttempt>(`${environment.apiBaseUrl}/questions/${questionId}/attempts`, submission);
   }
 
   listQuizzes(): Observable<Quiz[]> {

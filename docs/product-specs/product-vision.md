@@ -15,7 +15,7 @@ The frontend includes:
 - Public homepage at `/`.
 - Login page at `/login`.
 - Logged-in learner home at `/home`.
-- Basic one-answer and fixed-size set question creation and practice UI.
+- Unified question creation and practice UI for single-answer, multiple-answer, multiple-choice, and match questions.
 
 The backend includes:
 

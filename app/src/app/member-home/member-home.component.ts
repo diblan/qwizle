@@ -1,20 +1,22 @@
 import { Component, OnInit, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 
 import { AuthService } from '../auth/auth.service';
-import { BasicQuestion, BasicQuestionAttempt, QuestionType, Quiz } from '../questions/question.models';
+import { QuestionRendererComponent } from '../questions/question-renderer/question-renderer.component';
+import { CreateQuestionRequest, Question, QuestionAttempt, QuestionSubmission, QuestionType, Quiz } from '../questions/question.models';
 import { QuestionService } from '../questions/question.service';
 
 @Component({
   selector: 'app-member-home',
   standalone: true,
-  imports: [RouterLink],
+  imports: [FormsModule, RouterLink, QuestionRendererComponent],
   templateUrl: './member-home.component.html',
   styleUrls: ['./member-home.component.scss'],
 })
 export class MemberHomeComponent implements OnInit {
-  readonly questions = signal<BasicQuestion[]>([]);
-  readonly attempts = signal<Record<number, BasicQuestionAttempt>>({});
+  readonly questions = signal<Question[]>([]);
+  readonly attempts = signal<Record<number, QuestionAttempt>>({});
   readonly quizzes = signal<Quiz[]>([]);
   readonly loading = signal(false);
   readonly saving = signal(false);
@@ -24,14 +26,19 @@ export class MemberHomeComponent implements OnInit {
   readonly errorMessage = signal('');
 
   newQuestionType: QuestionType = 'SINGLE_ANSWER';
-  newQuestion = '';
-  newAnswer = '';
-  newSetAnswers = '';
+  newPrompt = '';
+  newAcceptedAnswers = '';
+  newMultipleAnswerMode: 'ONE_OF_ACCEPTED' | 'REQUIRED_SET' = 'REQUIRED_SET';
+  newChoiceSelectionMode: 'SINGLE' | 'MULTIPLE' = 'SINGLE';
+  newChoiceOptions = '';
+  newChoiceCorrectIds = '';
+  newMatchLeftItems = '';
+  newMatchRightItems = '';
+  newMatchPairs = '';
+  newExplanation = '';
   newQuizTitle = '';
   newQuizDescription = '';
   selectedQuizQuestionIds: Record<number, boolean> = {};
-  answers: Record<number, string> = {};
-  setAnswers: Record<number, string[]> = {};
 
   constructor(public readonly auth: AuthService, private readonly questionService: QuestionService) {}
 
@@ -46,7 +53,6 @@ export class MemberHomeComponent implements OnInit {
     this.questionService.list().subscribe({
       next: (questions) => {
         this.questions.set(questions);
-        questions.forEach((question) => this.ensureSetAnswerSlots(question));
         this.loading.set(false);
       },
       error: () => {
@@ -64,27 +70,23 @@ export class MemberHomeComponent implements OnInit {
   }
 
   createQuestion(): void {
-    if (!this.newQuestion.trim()) {
+    if (!this.newPrompt.trim()) {
       this.errorMessage.set('Question is required.');
       return;
     }
 
-    const answer = this.newQuestionType === 'SET_ANSWER' ? this.parseSetAnswers(this.newSetAnswers) : this.newAnswer.trim();
-    if ((Array.isArray(answer) && answer.length < 2) || (!Array.isArray(answer) && !answer)) {
-      this.errorMessage.set(this.newQuestionType === 'SET_ANSWER' ? 'Add at least two accepted answers.' : 'Question and answer are required.');
+    const request = this.buildCreateQuestionRequest();
+    if (!request) {
       return;
     }
 
     this.saving.set(true);
     this.errorMessage.set('');
     this.createMessage.set('');
-    this.questionService.create(this.newQuestion, answer, this.newQuestionType).subscribe({
+    this.questionService.create(request).subscribe({
       next: (question) => {
         this.questions.update((questions) => [question, ...questions]);
-        this.ensureSetAnswerSlots(question);
-        this.newQuestion = '';
-        this.newAnswer = '';
-        this.newSetAnswers = '';
+        this.resetQuestionForm();
         this.createMessage.set('Question created.');
         this.saving.set(false);
       },
@@ -125,33 +127,12 @@ export class MemberHomeComponent implements OnInit {
     });
   }
 
-  attemptQuestion(question: BasicQuestion): void {
-    const answer = question.type === 'SET_ANSWER'
-      ? this.setAnswers[question.id]?.map((value) => value?.trim() ?? '') ?? []
-      : this.answers[question.id]?.trim();
-    if ((Array.isArray(answer) && answer.some((value) => !value)) || (!Array.isArray(answer) && !answer)) {
-      this.errorMessage.set(question.type === 'SET_ANSWER' ? `Type ${question.solutionCount} answers before checking.` : 'Type an answer before checking.');
-      return;
-    }
-
+  attemptQuestion(question: Question, submission: QuestionSubmission): void {
     this.errorMessage.set('');
-    this.questionService.attempt(question.id, answer).subscribe({
+    this.questionService.attempt(question.id, submission).subscribe({
       next: (attempt) => this.attempts.update((attempts) => ({ ...attempts, [question.id]: attempt })),
       error: () => this.errorMessage.set('Could not check your answer. Please try again.'),
     });
-  }
-
-  solutionIndexes(question: BasicQuestion): number[] {
-    this.ensureSetAnswerSlots(question);
-    return Array.from({ length: question.solutionCount }, (_, index) => index);
-  }
-
-  private ensureSetAnswerSlots(question: BasicQuestion): void {
-    if (question.type !== 'SET_ANSWER') {
-      return;
-    }
-    const currentAnswers = this.setAnswers[question.id] ?? [];
-    this.setAnswers[question.id] = Array.from({ length: question.solutionCount }, (_, index) => currentAnswers[index] ?? '');
   }
 
   private selectedQuestionIds(): number[] {
@@ -160,10 +141,93 @@ export class MemberHomeComponent implements OnInit {
       .map((question) => question.id);
   }
 
-  private parseSetAnswers(value: string): string[] {
+  private buildCreateQuestionRequest(): CreateQuestionRequest | null {
+    const base = {
+      type: this.newQuestionType,
+      prompt: { text: this.newPrompt.trim(), media: [] },
+      explanation: this.newExplanation.trim() || undefined,
+    };
+
+    if (this.newQuestionType === 'SINGLE_ANSWER') {
+      const acceptedAnswers = this.parseLines(this.newAcceptedAnswers).map((text) => ({ text }));
+      if (acceptedAnswers.length < 1) {
+        this.errorMessage.set('Add at least one accepted answer.');
+        return null;
+      }
+      return { ...base, definition: { acceptedAnswers } };
+    }
+
+    if (this.newQuestionType === 'MULTIPLE_ANSWER') {
+      const answers = this.parseLines(this.newAcceptedAnswers).map((text, index) => ({ id: `answer-${index + 1}`, text }));
+      if (answers.length < 2) {
+        this.errorMessage.set('Add at least two answers.');
+        return null;
+      }
+      return { ...base, definition: { mode: this.newMultipleAnswerMode, answers } };
+    }
+
+    if (this.newQuestionType === 'MULTIPLE_CHOICE') {
+      const options = this.parseKeyedLines(this.newChoiceOptions).map((option) => ({
+        id: option.id,
+        content: { kind: 'TEXT' as const, text: option.text },
+      }));
+      const correctOptionIds = this.parseLines(this.newChoiceCorrectIds);
+      if (options.length < 2 || correctOptionIds.length < 1) {
+        this.errorMessage.set('Add at least two options and one correct option ID.');
+        return null;
+      }
+      return { ...base, definition: { selectionMode: this.newChoiceSelectionMode, options, correctOptionIds } };
+    }
+
+    const leftItems = this.parseKeyedLines(this.newMatchLeftItems).map((item) => ({ id: item.id, content: { kind: 'TEXT' as const, text: item.text } }));
+    const rightItems = this.parseKeyedLines(this.newMatchRightItems).map((item) => ({ id: item.id, content: { kind: 'TEXT' as const, text: item.text } }));
+    const pairs = this.parsePairs(this.newMatchPairs);
+    if (leftItems.length < 2 || rightItems.length < 2 || pairs.length !== leftItems.length) {
+      this.errorMessage.set('Add at least two items per side and one pair for each left item.');
+      return null;
+    }
+    return { ...base, definition: { leftItems, rightItems, pairs } };
+  }
+
+  private resetQuestionForm(): void {
+    this.newPrompt = '';
+    this.newAcceptedAnswers = '';
+    this.newChoiceOptions = '';
+    this.newChoiceCorrectIds = '';
+    this.newMatchLeftItems = '';
+    this.newMatchRightItems = '';
+    this.newMatchPairs = '';
+    this.newExplanation = '';
+  }
+
+  private parseLines(value: string): string[] {
     return value
       .split('\n')
-      .map((answer) => answer.trim())
-      .filter((answer) => answer.length > 0);
+      .map((line) => line.trim())
+      .filter((line) => line.length > 0);
+  }
+
+  private parseKeyedLines(value: string): Array<{ id: string; text: string }> {
+    return this.parseLines(value)
+      .map((line) => {
+        const separatorIndex = line.indexOf(':');
+        if (separatorIndex < 1) {
+          return null;
+        }
+        return { id: line.slice(0, separatorIndex).trim(), text: line.slice(separatorIndex + 1).trim() };
+      })
+      .filter((item): item is { id: string; text: string } => !!item && !!item.id && !!item.text);
+  }
+
+  private parsePairs(value: string): Array<{ leftId: string; rightId: string }> {
+    return this.parseLines(value)
+      .map((line) => {
+        const separatorIndex = line.indexOf(':');
+        if (separatorIndex < 1) {
+          return null;
+        }
+        return { leftId: line.slice(0, separatorIndex).trim(), rightId: line.slice(separatorIndex + 1).trim() };
+      })
+      .filter((pair): pair is { leftId: string; rightId: string } => !!pair && !!pair.leftId && !!pair.rightId);
   }
 }

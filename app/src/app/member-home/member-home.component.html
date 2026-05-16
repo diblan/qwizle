@@ -4,15 +4,126 @@
     <p class="member-muted">Good to see you, {{ auth.user()?.displayName || 'learner' }}.</p>
   </div>
 
+  @if (errorMessage()) {
+    <p class="alert alert-danger mt-4">{{ errorMessage() }}</p>
+  }
+
+  <section class="member-panel mt-5" aria-labelledby="create-question-heading">
+    <h2 id="create-question-heading" class="h4 fw-semibold">Create question</h2>
+
+    @if (createMessage()) {
+      <p class="alert alert-success mt-3">{{ createMessage() }}</p>
+    }
+
+    <div class="row g-3 mt-1">
+      <div class="col-12 col-md-4">
+        <label class="form-label" for="question-type">Type</label>
+        <select id="question-type" class="form-select" [(ngModel)]="newQuestionType">
+          <option value="SINGLE_ANSWER">Single answer</option>
+          <option value="MULTIPLE_ANSWER">Multiple answer</option>
+          <option value="MULTIPLE_CHOICE">Multiple choice</option>
+          <option value="MATCH">Match</option>
+        </select>
+      </div>
+      <div class="col-12 col-md-8">
+        <label class="form-label" for="question-prompt">Prompt</label>
+        <input id="question-prompt" class="form-control" type="text" [(ngModel)]="newPrompt" />
+      </div>
+      <div class="col-12">
+        <label class="form-label" for="question-explanation">Explanation</label>
+        <textarea id="question-explanation" class="form-control" rows="2" [(ngModel)]="newExplanation"></textarea>
+      </div>
+    </div>
+
+    @if (newQuestionType === 'SINGLE_ANSWER') {
+      <div class="mt-3">
+        <label class="form-label" for="accepted-answers">Accepted answers</label>
+        <textarea id="accepted-answers" class="form-control" rows="3" [(ngModel)]="newAcceptedAnswers"></textarea>
+      </div>
+    }
+
+    @if (newQuestionType === 'MULTIPLE_ANSWER') {
+      <div class="row g-3 mt-1">
+        <div class="col-12 col-md-4">
+          <label class="form-label" for="multiple-answer-mode">Mode</label>
+          <select id="multiple-answer-mode" class="form-select" [(ngModel)]="newMultipleAnswerMode">
+            <option value="REQUIRED_SET">Required set</option>
+            <option value="ONE_OF_ACCEPTED">One accepted answer</option>
+          </select>
+        </div>
+        <div class="col-12 col-md-8">
+          <label class="form-label" for="multiple-answers">Answers</label>
+          <textarea id="multiple-answers" class="form-control" rows="4" [(ngModel)]="newAcceptedAnswers"></textarea>
+        </div>
+      </div>
+    }
+
+    @if (newQuestionType === 'MULTIPLE_CHOICE') {
+      <div class="row g-3 mt-1">
+        <div class="col-12 col-md-4">
+          <label class="form-label" for="choice-mode">Selection</label>
+          <select id="choice-mode" class="form-select" [(ngModel)]="newChoiceSelectionMode">
+            <option value="SINGLE">Single</option>
+            <option value="MULTIPLE">Multiple</option>
+          </select>
+        </div>
+        <div class="col-12 col-md-8">
+          <label class="form-label" for="choice-correct">Correct option IDs</label>
+          <textarea id="choice-correct" class="form-control" rows="2" [(ngModel)]="newChoiceCorrectIds"></textarea>
+        </div>
+        <div class="col-12">
+          <label class="form-label" for="choice-options">Options as id:text</label>
+          <textarea id="choice-options" class="form-control" rows="4" [(ngModel)]="newChoiceOptions"></textarea>
+        </div>
+      </div>
+    }
+
+    @if (newQuestionType === 'MATCH') {
+      <div class="row g-3 mt-1">
+        <div class="col-12 col-md-4">
+          <label class="form-label" for="match-left">Left items as id:text</label>
+          <textarea id="match-left" class="form-control" rows="4" [(ngModel)]="newMatchLeftItems"></textarea>
+        </div>
+        <div class="col-12 col-md-4">
+          <label class="form-label" for="match-right">Right items as id:text</label>
+          <textarea id="match-right" class="form-control" rows="4" [(ngModel)]="newMatchRightItems"></textarea>
+        </div>
+        <div class="col-12 col-md-4">
+          <label class="form-label" for="match-pairs">Pairs as leftId:rightId</label>
+          <textarea id="match-pairs" class="form-control" rows="4" [(ngModel)]="newMatchPairs"></textarea>
+        </div>
+      </div>
+    }
+
+    <button type="button" class="btn btn-primary mt-4" [disabled]="saving()" (click)="createQuestion()">
+      {{ saving() ? 'Saving...' : 'Create question' }}
+    </button>
+  </section>
+
+  <section class="mt-5" aria-labelledby="questions-heading">
+    <div class="d-flex align-items-center justify-content-between gap-4">
+      <h2 id="questions-heading" class="h4 fw-semibold mb-0">Practice questions</h2>
+      <button type="button" class="btn btn-outline-light" (click)="loadQuestions()">Refresh</button>
+    </div>
+
+    <div class="d-grid gap-3 mt-4">
+      @for (question of questions(); track question.id) {
+        <app-question-renderer
+          [question]="question"
+          [attempt]="attempts()[question.id]"
+          (submitAttempt)="attemptQuestion(question, $event)"
+        />
+      } @empty {
+        <p class="member-empty mb-0">No questions yet.</p>
+      }
+    </div>
+  </section>
+
   <section class="mt-5" aria-labelledby="quizzes-heading">
     <div class="d-flex align-items-center justify-content-between gap-4">
       <h2 id="quizzes-heading" class="h4 fw-semibold mb-0">Your quizzes</h2>
       <button type="button" class="btn btn-outline-light" (click)="loadQuizzes()">Refresh</button>
     </div>
-
-    @if (errorMessage()) {
-      <p class="alert alert-danger mt-4">{{ errorMessage() }}</p>
-    }
 
     @if (quizzes().length > 0) {
       <div class="row g-4 mt-1">

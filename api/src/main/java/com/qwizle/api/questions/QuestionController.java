@@ -16,35 +16,43 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/questions")
-public class BasicQuestionController {
+public class QuestionController {
     private final AuthService authService;
-    private final BasicQuestionService questionService;
+    private final QuestionService questionService;
 
-    public BasicQuestionController(AuthService authService, BasicQuestionService questionService) {
+    public QuestionController(AuthService authService, QuestionService questionService) {
         this.authService = authService;
         this.questionService = questionService;
     }
 
     @PostMapping
-    public BasicQuestionResponse create(
+    public QuestionResponse create(
             @RequestHeader(name = HttpHeaders.AUTHORIZATION, required = false) String authorizationHeader,
-            @Valid @RequestBody CreateBasicQuestionRequest request) {
+            @Valid @RequestBody CreateQuestionRequest request) {
         UserProfile user = authService.currentUser(authorizationHeader);
         return questionService.create(user, request);
     }
 
     @GetMapping
-    public List<BasicQuestionResponse> list(
+    public List<QuestionResponse> list(
             @RequestHeader(name = HttpHeaders.AUTHORIZATION, required = false) String authorizationHeader) {
         authService.currentUser(authorizationHeader);
         return questionService.list();
     }
 
+    @GetMapping("/{questionId}")
+    public QuestionResponse get(
+            @RequestHeader(name = HttpHeaders.AUTHORIZATION, required = false) String authorizationHeader,
+            @PathVariable Long questionId) {
+        authService.currentUser(authorizationHeader);
+        return questionService.get(questionId);
+    }
+
     @PostMapping("/{questionId}/attempts")
-    public BasicQuestionAttemptResponse attempt(
+    public QuestionAttemptResponse attempt(
             @RequestHeader(name = HttpHeaders.AUTHORIZATION, required = false) String authorizationHeader,
             @PathVariable Long questionId,
-            @Valid @RequestBody AttemptBasicQuestionRequest request) {
+            @Valid @RequestBody SubmitQuestionAttemptRequest request) {
         UserProfile user = authService.currentUser(authorizationHeader);
         return questionService.attempt(user, questionId, request);
     }

@@ -20,6 +20,7 @@ The `docs/` directory is the durable knowledge base for Qwizle. It is written fo
 - `docs/DESIGN.md` summarizes visual and UX direction without duplicating frontend implementation rules.
 - `docs/design-docs/index.md` explains design docs.
 - `docs/design-docs/core-beliefs.md` records the repo's agent-first engineering beliefs.
+- `docs/design-docs/question-types.md` records the unified question type model and v1 implementation notes.
 
 ## Quality, Reliability, and Security
 

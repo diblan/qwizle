@@ -1,6 +1,6 @@
 # Qwizle
 
-Qwizle is a daily learning and long-term retention app. This first full-stack slice includes a public homepage, a login page, a logged-in learner homepage, a Spring Boot authentication API, logged-in one-answer and fixed-size set question creation/attempts, quiz creation from existing questions, and Flyway-managed user/session/question tables.
+Qwizle is a daily learning and long-term retention app. This first full-stack slice includes a public homepage, a login page, a logged-in learner homepage, a Spring Boot authentication API, unified question creation/attempts, quiz creation from existing questions, and Flyway-managed user/session/question tables.
 
 ## Local one-command run
 
@@ -56,23 +56,23 @@ curl -s http://localhost:8080/api/auth/me \
   -H "Authorization: Bearer <token>"
 ```
 
-Create a basic one-answer question (requires the returned bearer token):
+Create a single-answer question (requires the returned bearer token):
 
 ```sh
 curl -s -X POST http://localhost:8080/api/questions \
   -H 'Content-Type: application/json' \
   -H "Authorization: Bearer <token>" \
-  -d '{"question":"What does spaced repetition support?","answer":"Long-term retention"}'
+  -d '{"type":"SINGLE_ANSWER","prompt":{"text":"What does spaced repetition support?"},"definition":{"acceptedAnswers":[{"text":"Long-term retention"}]}}'
 ```
 
 
-Create a fixed-size set question, such as naming all OSI model layers. The number of accepted answers defines the number learners must submit, and attempts can provide the answers in any order. Each answer must be supplied as its own array element; individual set-answer values cannot contain line breaks:
+Create a required-set multiple-answer question, such as naming all OSI model layers. The number of configured answers defines the number learners must submit, and attempts can provide the answers in any order:
 
 ```sh
 curl -s -X POST http://localhost:8080/api/questions \
   -H 'Content-Type: application/json' \
   -H "Authorization: Bearer <token>" \
-  -d '{"question":"Name the layers of the OSI model.","type":"SET_ANSWER","answers":["Physical","Data Link","Network","Transport","Session","Presentation","Application"]}'
+  -d '{"type":"MULTIPLE_ANSWER","prompt":{"text":"Name the layers of the OSI model."},"definition":{"mode":"REQUIRED_SET","answers":[{"id":"physical","text":"Physical"},{"id":"data-link","text":"Data Link"},{"id":"network","text":"Network"},{"id":"transport","text":"Transport"},{"id":"session","text":"Session"},{"id":"presentation","text":"Presentation"},{"id":"application","text":"Application"}]}}'
 ```
 
 List available questions (answers are intentionally hidden):
@@ -82,7 +82,7 @@ curl -s http://localhost:8080/api/questions \
   -H "Authorization: Bearer <token>"
 ```
 
-Create a quiz from existing questions. For an OSI model quiz, create the TCP layer question and OSI layer set question first, then pass their returned IDs in the desired order:
+Create a quiz from existing questions. For an OSI model quiz, create the TCP layer question and OSI layer question first, then pass their returned IDs in the desired order:
 
 ```sh
 curl -s -X POST http://localhost:8080/api/quizzes \
@@ -104,17 +104,19 @@ Attempt a one-answer question:
 curl -s -X POST http://localhost:8080/api/questions/<question-id>/attempts \
   -H 'Content-Type: application/json' \
   -H "Authorization: Bearer <token>" \
-  -d '{"answer":"Long-term retention"}'
+  -d '{"type":"SINGLE_ANSWER","response":{"text":"Long-term retention"}}'
 ```
 
-Attempt a set question:
+Attempt a multiple-answer question:
 
 ```sh
 curl -s -X POST http://localhost:8080/api/questions/<question-id>/attempts \
   -H 'Content-Type: application/json' \
   -H "Authorization: Bearer <token>" \
-  -d '{"answers":["Application","Presentation","Session","Transport","Network","Data Link","Physical"]}'
+  -d '{"type":"MULTIPLE_ANSWER","response":{"answers":["Application","Presentation","Session","Transport","Network","Data Link","Physical"]}}'
 ```
+
+The current supported question types are `SINGLE_ANSWER`, `MULTIPLE_ANSWER`, `MULTIPLE_CHOICE`, and `MATCH`. The early prototype question tables were replaced by a clean unified schema; reset local prototype data with `docker compose down -v` or by deleting the local H2 data file before running this version.
 
 ## Development checks
 

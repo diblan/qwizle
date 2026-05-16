@@ -1,0 +1,15 @@
+<div class="d-grid gap-3">
+  @for (answer of answers; track $index) {
+    <div>
+      <label class="form-label" [for]="'multiple-answer-' + $index">Answer {{ $index + 1 }}</label>
+      <input
+        class="form-control"
+        [id]="'multiple-answer-' + $index"
+        type="text"
+        [(ngModel)]="answers[$index]"
+        (ngModelChange)="update()"
+        autocomplete="off"
+      />
+    </div>
+  }
+</div>

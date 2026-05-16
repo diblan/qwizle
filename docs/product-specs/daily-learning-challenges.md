@@ -2,7 +2,7 @@
 
 The first expected daily learning experience should feel small, clear, and repeatable. A learner should be able to sign in, reach a focused practice area, and answer recall-style questions without navigating a complex dashboard.
 
-At the current stage, Qwizle supports creating and attempting one-answer questions, fixed-size set questions, and quizzes assembled from existing questions. That is enough to shape an early daily challenge loop: present a manageable set of recall prompts, collect answers, show whether the attempt was correct, and keep the learner oriented toward returning later.
+At the current stage, Qwizle supports creating and attempting single-answer, multiple-answer, multiple-choice, and match questions, plus quizzes assembled from existing questions. That is enough to shape an early daily challenge loop: present a manageable set of prompts, collect answers, show whether the attempt was correct, and keep the learner oriented toward returning later.
 
 ## Experience Principles
 

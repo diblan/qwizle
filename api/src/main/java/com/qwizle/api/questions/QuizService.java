@@ -5,12 +5,15 @@ import java.sql.SQLException;
 import java.time.Clock;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.qwizle.api.auth.UserProfile;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -25,10 +28,21 @@ import org.springframework.web.server.ResponseStatusException;
 public class QuizService {
     private final NamedParameterJdbcTemplate jdbcTemplate;
     private final Clock clock;
+    private final ObjectMapper objectMapper;
+    private final Map<QuestionType, QuestionTypeHandler<?, ?>> questionHandlers;
 
-    public QuizService(NamedParameterJdbcTemplate jdbcTemplate, Clock clock) {
+    public QuizService(
+            NamedParameterJdbcTemplate jdbcTemplate,
+            Clock clock,
+            ObjectMapper objectMapper,
+            List<QuestionTypeHandler<?, ?>> questionHandlers) {
         this.jdbcTemplate = jdbcTemplate;
         this.clock = clock;
+        this.objectMapper = objectMapper;
+        this.questionHandlers = new EnumMap<>(QuestionType.class);
+        for (QuestionTypeHandler<?, ?> handler : questionHandlers) {
+            this.questionHandlers.put(handler.type(), handler);
+        }
     }
 
     @Transactional
@@ -90,15 +104,16 @@ public class QuizService {
         }
 
         List<Long> quizIds = summaries.stream().map(QuizSummary::id).toList();
-        Map<Long, List<BasicQuestionResponse>> questionsByQuizId = new LinkedHashMap<>();
+        Map<Long, List<QuestionResponse>> questionsByQuizId = new LinkedHashMap<>();
         for (Long quizId : quizIds) {
             questionsByQuizId.put(quizId, new ArrayList<>());
         }
 
         jdbcTemplate.query("""
-                SELECT qq.quiz_id, bq.id, bq.created_by_user_id, bq.question_text, bq.question_type, bq.solution_count, bq.created_at
+                SELECT qq.quiz_id, q.id, q.created_by_user_id, q.type, q.prompt_text, q.prompt_media_json,
+                       q.definition_json, q.difficulty, q.created_at
                 FROM quiz_questions qq
-                JOIN basic_questions bq ON bq.id = qq.question_id
+                JOIN questions q ON q.id = qq.question_id
                 WHERE qq.quiz_id IN (:quizIds)
                 ORDER BY qq.quiz_id, qq.position
                 """, new MapSqlParameterSource("quizIds", quizIds), rs -> {
@@ -108,7 +123,7 @@ public class QuizService {
 
         return summaries.stream()
                 .map(summary -> {
-                    List<BasicQuestionResponse> questions = List.copyOf(questionsByQuizId.getOrDefault(summary.id(), List.of()));
+                    List<QuestionResponse> questions = List.copyOf(questionsByQuizId.getOrDefault(summary.id(), List.of()));
                     return new QuizResponse(
                             summary.id(),
                             summary.title(),
@@ -142,7 +157,7 @@ public class QuizService {
 
         Integer existingCount = jdbcTemplate.queryForObject("""
                 SELECT COUNT(*)
-                FROM basic_questions
+                FROM questions
                 WHERE id IN (:questionIds)
                 """, new MapSqlParameterSource("questionIds", questionIds), Integer.class);
         if (existingCount == null || existingCount != questionIds.size()) {
@@ -166,14 +181,47 @@ public class QuizService {
                 rs.getObject("created_at", OffsetDateTime.class));
     }
 
-    private BasicQuestionResponse mapQuestion(ResultSet rs) throws SQLException {
-        return new BasicQuestionResponse(
+    private QuestionResponse mapQuestion(ResultSet rs) throws SQLException {
+        QuestionType type = QuestionType.valueOf(rs.getString("type"));
+        QuestionTypeHandler<Object, Object> handler = handlerFor(type);
+        Object definition = readJson(rs.getString("definition_json"), handler.definitionClass());
+        return new QuestionResponse(
                 rs.getLong("id"),
-                rs.getString("question_text"),
-                QuestionType.valueOf(rs.getString("question_type")),
-                rs.getInt("solution_count"),
+                type,
+                new QuestionPrompt(
+                        rs.getString("prompt_text"),
+                        readPromptMedia(rs.getString("prompt_media_json"))),
+                handler.toLearnerInteraction(definition),
+                rs.getString("difficulty"),
+                List.of(),
                 rs.getLong("created_by_user_id"),
                 rs.getObject("created_at", OffsetDateTime.class));
+    }
+
+    @SuppressWarnings("unchecked")
+    private QuestionTypeHandler<Object, Object> handlerFor(QuestionType type) {
+        QuestionTypeHandler<?, ?> handler = questionHandlers.get(type);
+        if (handler == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unsupported question type.");
+        }
+        return (QuestionTypeHandler<Object, Object>) handler;
+    }
+
+    private <T> T readJson(String json, Class<T> type) {
+        try {
+            return objectMapper.readValue(json, type);
+        } catch (JsonProcessingException ex) {
+            throw new IllegalStateException("Stored question definition could not be parsed.", ex);
+        }
+    }
+
+    private List<ContentBlock> readPromptMedia(String json) {
+        try {
+            ContentBlock[] contentBlocks = objectMapper.readValue(json, ContentBlock[].class);
+            return contentBlocks == null ? List.of() : List.of(contentBlocks);
+        } catch (JsonProcessingException ex) {
+            throw new IllegalStateException("Stored prompt media could not be parsed.", ex);
+        }
     }
 
     private record QuizSummary(Long id, Long createdByUserId, String title, String description, OffsetDateTime createdAt) {

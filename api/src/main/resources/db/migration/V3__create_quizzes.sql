@@ -3,13 +3,13 @@ CREATE TABLE quizzes (
     created_by_user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     title VARCHAR(160) NOT NULL,
     description TEXT,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE quiz_questions (
     quiz_id BIGINT NOT NULL REFERENCES quizzes(id) ON DELETE CASCADE,
-    question_id BIGINT NOT NULL REFERENCES basic_questions(id) ON DELETE CASCADE,
+    question_id BIGINT NOT NULL REFERENCES questions(id) ON DELETE CASCADE,
     position INTEGER NOT NULL,
     PRIMARY KEY (quiz_id, question_id),
     CONSTRAINT uq_quiz_questions_position UNIQUE (quiz_id, position),

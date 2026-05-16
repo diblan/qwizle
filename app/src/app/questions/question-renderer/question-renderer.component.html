@@ -1,0 +1,47 @@
+<article class="question-card">
+  <div class="d-flex align-items-start justify-content-between gap-3">
+    <div>
+      <p class="question-type mb-2">{{ question.type.replace('_', ' ') }}</p>
+      <h3 class="h5 mb-0">{{ question.prompt.text }}</h3>
+    </div>
+    @if (question.difficulty) {
+      <span class="badge text-bg-dark">{{ question.difficulty }}</span>
+    }
+  </div>
+
+  <div class="mt-4">
+    @switch (question.type) {
+      @case ('SINGLE_ANSWER') {
+        <app-single-answer-input (submissionChange)="setSubmission($event)" />
+      }
+      @case ('MULTIPLE_ANSWER') {
+        <app-multiple-answer-input [question]="question" (submissionChange)="setSubmission($event)" />
+      }
+      @case ('MULTIPLE_CHOICE') {
+        <app-multiple-choice-input [question]="question" (submissionChange)="setSubmission($event)" />
+      }
+      @case ('MATCH') {
+        <app-match-input [question]="question" (submissionChange)="setSubmission($event)" />
+      }
+    }
+  </div>
+
+  @if (validationMessage) {
+    <p class="alert alert-warning mt-3 mb-0">{{ validationMessage }}</p>
+  }
+
+  <div class="d-flex align-items-center gap-3 mt-4">
+    <button type="button" class="btn btn-primary" [disabled]="checking" (click)="submit()">
+      {{ checking ? 'Checking...' : 'Check' }}
+    </button>
+    @if (attempt) {
+      <p class="mb-0" [class.question-correct]="attempt.correct" [class.question-incorrect]="!attempt.correct">
+        {{ attempt.feedback.message }} Score {{ attempt.score }}/{{ attempt.maxScore }}
+      </p>
+    }
+  </div>
+
+  @if (attempt?.feedback?.explanation) {
+    <p class="question-explanation mt-3 mb-0">{{ attempt?.feedback?.explanation }}</p>
+  }
+</article>

@@ -1,0 +1,9 @@
+<label class="form-label" for="single-answer">Answer</label>
+<input
+  id="single-answer"
+  class="form-control"
+  type="text"
+  [(ngModel)]="answer"
+  (ngModelChange)="update()"
+  autocomplete="off"
+/>

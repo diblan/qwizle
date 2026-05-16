@@ -18,9 +18,9 @@ The following rules are required and should be treated as invariants:
 
 The first runnable product slice is a login-enabled learning shell:
 
-- The Angular app owns the public homepage (`/`), login page (`/login`), and logged-in learner homepage (`/home`), including the first basic-question creation, quiz-building, and practice UI.
-- The Spring Boot API owns authentication endpoints under `/api/auth` and authenticated basic-question endpoints under `/api/questions` and quiz endpoints under `/api/quizzes`.
-- Flyway owns database schema creation for `users`, `user_sessions`, `basic_questions`, `basic_question_attempts`, `quizzes`, and `quiz_questions`.
+- The Angular app owns the public homepage (`/`), login page (`/login`), and logged-in learner homepage (`/home`), including unified question creation, quiz-building, and practice UI.
+- The Spring Boot API owns authentication endpoints under `/api/auth`, authenticated unified question endpoints under `/api/questions`, and quiz endpoints under `/api/quizzes`.
+- Flyway owns database schema creation for `users`, `user_sessions`, `questions`, `question_tags`, `question_attempts`, `quizzes`, and `quiz_questions`.
 - Postgres is the production-style database used by `docker compose up --build`; the API defaults to an H2 file database only for quick local backend development without Docker.
 - The frontend stores the backend's opaque bearer token in browser `localStorage` and sends it to API requests through an Angular HTTP interceptor. Question endpoints also validate the bearer token on the backend before creating, listing, or attempting questions and creating or listing quizzes.
 

@@ -8,7 +8,7 @@ public record QuizResponse(
         String title,
         String description,
         int questionCount,
-        List<BasicQuestionResponse> questions,
+        List<QuestionResponse> questions,
         Long createdByUserId,
         OffsetDateTime createdAt) {
 }

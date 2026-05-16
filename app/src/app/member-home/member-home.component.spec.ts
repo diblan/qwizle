@@ -3,6 +3,7 @@ import { signal } from '@angular/core';
 import { of } from 'rxjs';
 
 import { AuthService } from '../auth/auth.service';
+import { Question } from '../questions/question.models';
 import { QuestionService } from '../questions/question.service';
 import { MemberHomeComponent } from './member-home.component';
 
@@ -13,11 +14,11 @@ describe('MemberHomeComponent', () => {
   beforeEach(async () => {
     questionService = jasmine.createSpyObj<QuestionService>('QuestionService', ['list', 'create', 'attempt', 'listQuizzes', 'createQuiz']);
     questionService.list.and.returnValue(of([
-      { id: 10, question: 'What is retrieval practice?', type: 'SINGLE_ANSWER', solutionCount: 1, createdByUserId: 1, createdAt: '2026-05-15T00:00:00Z' },
-      { id: 12, question: 'Name two OSI layers.', type: 'SET_ANSWER', solutionCount: 2, createdByUserId: 1, createdAt: '2026-05-15T00:00:00Z' },
+      question(10, 'What is retrieval practice?'),
+      multipleAnswerQuestion(12, 'Name two OSI layers?'),
     ]));
     questionService.create.and.returnValue(of(
-      { id: 11, question: 'What does Qwizle train?', type: 'SINGLE_ANSWER', solutionCount: 1, createdByUserId: 1, createdAt: '2026-05-15T00:00:00Z' },
+      question(11, 'What does Qwizle train?'),
     ));
     questionService.listQuizzes.and.returnValue(of([
       {
@@ -26,8 +27,8 @@ describe('MemberHomeComponent', () => {
         description: 'TCP placement and layer names.',
         questionCount: 2,
         questions: [
-          { id: 10, question: 'What is retrieval practice?', type: 'SINGLE_ANSWER', solutionCount: 1, createdByUserId: 1, createdAt: '2026-05-15T00:00:00Z' },
-          { id: 12, question: 'Name two OSI layers.', type: 'SET_ANSWER', solutionCount: 2, createdByUserId: 1, createdAt: '2026-05-15T00:00:00Z' },
+          question(10, 'What is retrieval practice?'),
+          multipleAnswerQuestion(12, 'Name two OSI layers?'),
         ],
         createdByUserId: 1,
         createdAt: '2026-05-15T00:00:00Z',
@@ -43,7 +44,7 @@ describe('MemberHomeComponent', () => {
       createdAt: '2026-05-15T00:00:00Z',
     }));
     questionService.attempt.and.returnValue(of(
-      { questionId: 10, submittedAnswer: 'Memory', submittedAnswers: [], correct: true, attemptedAt: '2026-05-15T00:00:00Z' },
+      { attemptId: 1, questionId: 10, correct: true, score: 1, maxScore: 1, feedback: { message: 'Correct.' }, attemptedAt: '2026-05-15T00:00:00Z' },
     ));
 
     await TestBed.configureTestingModule({
@@ -70,30 +71,42 @@ describe('MemberHomeComponent', () => {
 
   it('creates a basic question from the form', () => {
     const component = fixture.componentInstance;
-    component.newQuestion = 'What does Qwizle train?';
-    component.newAnswer = 'Memory';
+    component.newPrompt = 'What does Qwizle train?';
+    component.newAcceptedAnswers = 'Memory';
 
     component.createQuestion();
     fixture.detectChanges();
 
-    expect(questionService.create).toHaveBeenCalledWith('What does Qwizle train?', 'Memory', 'SINGLE_ANSWER');
-    expect(component.questions()[0].question).toBe('What does Qwizle train?');
+    expect(questionService.create).toHaveBeenCalledWith({
+      type: 'SINGLE_ANSWER',
+      prompt: { text: 'What does Qwizle train?', media: [] },
+      explanation: undefined,
+      definition: { acceptedAnswers: [{ text: 'Memory' }] },
+    });
+    expect(component.questions()[0].prompt.text).toBe('What does Qwizle train?');
     expect((fixture.nativeElement as HTMLElement).textContent).toContain('Question created.');
   });
 
-  it('creates a set answer question from newline-delimited answers', () => {
+  it('creates a multiple-answer question from newline-delimited answers', () => {
     const component = fixture.componentInstance;
     questionService.create.and.returnValue(of(
-      { id: 13, question: 'Name two OSI layers.', type: 'SET_ANSWER', solutionCount: 2, createdByUserId: 1, createdAt: '2026-05-15T00:00:00Z' },
+      multipleAnswerQuestion(13, 'Name two OSI layers.'),
     ));
-    component.newQuestionType = 'SET_ANSWER';
-    component.newQuestion = 'Name two OSI layers.';
-    component.newSetAnswers = 'Physical\nData Link';
+    component.newQuestionType = 'MULTIPLE_ANSWER';
+    component.newPrompt = 'Name two OSI layers.';
+    component.newAcceptedAnswers = 'Physical\nData Link';
 
     component.createQuestion();
 
-    expect(questionService.create).toHaveBeenCalledWith('Name two OSI layers.', ['Physical', 'Data Link'], 'SET_ANSWER');
-    expect(component.setAnswers[13]).toEqual(['', '']);
+    expect(questionService.create).toHaveBeenCalledWith({
+      type: 'MULTIPLE_ANSWER',
+      prompt: { text: 'Name two OSI layers.', media: [] },
+      explanation: undefined,
+      definition: {
+        mode: 'REQUIRED_SET',
+        answers: [{ id: 'answer-1', text: 'Physical' }, { id: 'answer-2', text: 'Data Link' }],
+      },
+    });
   });
 
 
@@ -113,25 +126,44 @@ describe('MemberHomeComponent', () => {
 
   it('submits an attempt for a basic question', () => {
     const component = fixture.componentInstance;
-    component.answers[10] = 'Memory';
+    const submission = { type: 'SINGLE_ANSWER' as const, response: { text: 'Memory' } };
 
-    component.attemptQuestion(component.questions()[0]);
+    component.attemptQuestion(component.questions()[0], submission);
     fixture.detectChanges();
 
-    expect(questionService.attempt).toHaveBeenCalledWith(10, 'Memory');
-    expect((fixture.nativeElement as HTMLElement).textContent).toContain('Correct — nice recall.');
+    expect(questionService.attempt).toHaveBeenCalledWith(10, submission);
   });
 
-  it('submits an attempt for a set answer question', () => {
+  it('submits an attempt for a multiple-answer question', () => {
     const component = fixture.componentInstance;
     questionService.attempt.and.returnValue(of(
-      { questionId: 12, submittedAnswers: ['Physical', 'Data Link'], correct: true, attemptedAt: '2026-05-15T00:00:00Z' },
+      { attemptId: 2, questionId: 12, correct: true, score: 1, maxScore: 1, feedback: { message: 'Correct.' }, attemptedAt: '2026-05-15T00:00:00Z' },
     ));
-    const setQuestion = component.questions()[1];
-    component.setAnswers[12] = ['Physical', 'Data Link'];
+    const multipleAnswerQuestion = component.questions()[1];
+    const submission = { type: 'MULTIPLE_ANSWER' as const, response: { answers: ['Physical', 'Data Link'] } };
 
-    component.attemptQuestion(setQuestion);
+    component.attemptQuestion(multipleAnswerQuestion, submission);
 
-    expect(questionService.attempt).toHaveBeenCalledWith(12, ['Physical', 'Data Link']);
+    expect(questionService.attempt).toHaveBeenCalledWith(12, submission);
   });
 });
+
+function question(id: number, text: string): Question {
+  return {
+    id,
+    type: 'SINGLE_ANSWER' as const,
+    prompt: { text, media: [] },
+    interaction: { kind: 'TEXT' as const, minAnswers: 1, maxAnswers: 1 },
+    tags: [],
+    createdByUserId: 1,
+    createdAt: '2026-05-15T00:00:00Z',
+  };
+}
+
+function multipleAnswerQuestion(id: number, text: string): Question {
+  return {
+    ...question(id, text),
+    type: 'MULTIPLE_ANSWER',
+    interaction: { kind: 'TEXT_LIST', minAnswers: 2, maxAnswers: 2 },
+  };
+}

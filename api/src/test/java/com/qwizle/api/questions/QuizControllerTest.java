@@ -10,6 +10,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.qwizle.api.auth.LoginRequest;
@@ -35,14 +36,8 @@ class QuizControllerTest {
     @Test
     void loggedInUserCanCreateAndListQuizFromExistingQuestions() throws Exception {
         String token = loginToken();
-        BasicQuestionResponse tcpQuestion = createQuestion(token, new CreateBasicQuestionRequest(
-                "In what layer of the OSI model resides TCP?",
-                "4"));
-        BasicQuestionResponse layerQuestion = createQuestion(token, new CreateBasicQuestionRequest(
-                "Give me all layers of the OSI model.",
-                null,
-                QuestionType.SET_ANSWER,
-                List.of("Physical", "Data Link", "Network", "Transport", "Session", "Presentation", "Application")));
+        QuestionResponse tcpQuestion = createQuestion(token, singleAnswerQuestion("In what layer of the OSI model resides TCP?", "Transport"));
+        QuestionResponse layerQuestion = createQuestion(token, multipleAnswerQuestion());
 
         String createdResponse = mockMvc.perform(post("/api/quizzes")
                         .header("Authorization", "Bearer " + token)
@@ -62,8 +57,8 @@ class QuizControllerTest {
                 .andExpect(jsonPath("$.questions[0].id").value(tcpQuestion.id()))
                 .andExpect(jsonPath("$.questions[0].answer").doesNotExist())
                 .andExpect(jsonPath("$.questions[1].id").value(layerQuestion.id()))
-                .andExpect(jsonPath("$.questions[1].type").value("SET_ANSWER"))
-                .andExpect(jsonPath("$.questions[1].solutionCount").value(7))
+                .andExpect(jsonPath("$.questions[1].type").value("MULTIPLE_ANSWER"))
+                .andExpect(jsonPath("$.questions[1].interaction.maxAnswers").value(7))
                 .andReturn()
                 .getResponse()
                 .getContentAsString();
@@ -76,14 +71,14 @@ class QuizControllerTest {
                 .andExpect(jsonPath("$[0].id").value(created.id()))
                 .andExpect(jsonPath("$[0].title").value("OSI model basics"))
                 .andExpect(jsonPath("$[0].questionCount").value(2))
-                .andExpect(jsonPath("$[0].questions[0].question").value("In what layer of the OSI model resides TCP?"))
-                .andExpect(jsonPath("$[0].questions[1].question").value("Give me all layers of the OSI model."));
+                .andExpect(jsonPath("$[0].questions[0].prompt.text").value("In what layer of the OSI model resides TCP?"))
+                .andExpect(jsonPath("$[0].questions[1].prompt.text").value("Give me all layers of the OSI model."));
     }
 
     @Test
     void createQuizRejectsTooFewQuestions() throws Exception {
         String token = loginToken();
-        BasicQuestionResponse question = createQuestion(token, new CreateBasicQuestionRequest("Question?", "Answer"));
+        QuestionResponse question = createQuestion(token, singleAnswerQuestion("Question?", "Answer"));
 
         mockMvc.perform(post("/api/quizzes")
                         .header("Authorization", "Bearer " + token)
@@ -99,10 +94,8 @@ class QuizControllerTest {
     @Test
     void createQuizRejectsNullQuestionIds() throws Exception {
         String token = loginToken();
-        BasicQuestionResponse firstQuestion = createQuestion(token,
-                new CreateBasicQuestionRequest("First question?", "Answer"));
-        BasicQuestionResponse secondQuestion = createQuestion(token,
-                new CreateBasicQuestionRequest("Second question?", "Answer"));
+        QuestionResponse firstQuestion = createQuestion(token, singleAnswerQuestion("First question?", "Answer"));
+        QuestionResponse secondQuestion = createQuestion(token, singleAnswerQuestion("Second question?", "Answer"));
 
         mockMvc.perform(post("/api/quizzes")
                         .header("Authorization", "Bearer " + token)
@@ -118,7 +111,7 @@ class QuizControllerTest {
     @Test
     void createQuizRejectsDuplicateQuestionIds() throws Exception {
         String token = loginToken();
-        BasicQuestionResponse question = createQuestion(token, new CreateBasicQuestionRequest("Question?", "Answer"));
+        QuestionResponse question = createQuestion(token, singleAnswerQuestion("Question?", "Answer"));
 
         mockMvc.perform(post("/api/quizzes")
                         .header("Authorization", "Bearer " + token)
@@ -157,7 +150,7 @@ class QuizControllerTest {
                 .andExpect(jsonPath("$.message").value("Missing bearer token."));
     }
 
-    private BasicQuestionResponse createQuestion(String token, CreateBasicQuestionRequest request) throws Exception {
+    private QuestionResponse createQuestion(String token, Map<String, Object> request) throws Exception {
         String response = mockMvc.perform(post("/api/questions")
                         .header("Authorization", "Bearer " + token)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -166,7 +159,30 @@ class QuizControllerTest {
                 .andReturn()
                 .getResponse()
                 .getContentAsString();
-        return objectMapper.readValue(response, BasicQuestionResponse.class);
+        return objectMapper.readValue(response, QuestionResponse.class);
+    }
+
+    private Map<String, Object> singleAnswerQuestion(String prompt, String answer) {
+        return Map.of(
+                "type", "SINGLE_ANSWER",
+                "prompt", Map.of("text", prompt),
+                "definition", Map.of("acceptedAnswers", List.of(Map.of("text", answer))));
+    }
+
+    private Map<String, Object> multipleAnswerQuestion() {
+        return Map.of(
+                "type", "MULTIPLE_ANSWER",
+                "prompt", Map.of("text", "Give me all layers of the OSI model."),
+                "definition", Map.of(
+                        "mode", "REQUIRED_SET",
+                        "answers", List.of(
+                                Map.of("id", "physical", "text", "Physical"),
+                                Map.of("id", "data-link", "text", "Data Link"),
+                                Map.of("id", "network", "text", "Network"),
+                                Map.of("id", "transport", "text", "Transport"),
+                                Map.of("id", "session", "text", "Session"),
+                                Map.of("id", "presentation", "text", "Presentation"),
+                                Map.of("id", "application", "text", "Application"))));
     }
 
     private String loginToken() throws Exception {

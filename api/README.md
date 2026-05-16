@@ -8,8 +8,12 @@ Spring Boot REST API for Qwizle.
 - Demo user seeding through `DemoUserSeeder`.
 - `POST /api/auth/login` for email/password login.
 - `GET /api/auth/me` for looking up the logged-in user from an opaque bearer token.
-- `POST /api/questions` for one-answer (`SINGLE_ANSWER`) and fixed-size set (`SET_ANSWER`) recall questions.
-- `POST /api/questions/{questionId}/attempts` for checking either a single `answer` or an order-insensitive set of `answers`.
+- `POST /api/questions` for unified `SINGLE_ANSWER`, `MULTIPLE_ANSWER`, `MULTIPLE_CHOICE`, and `MATCH` questions.
+- `GET /api/questions` and `GET /api/questions/{questionId}` for learner-safe question retrieval without hidden definitions.
+- `POST /api/questions/{questionId}/attempts` for scoring canonical typed submissions.
+- `POST /api/quizzes` and `GET /api/quizzes` for quizzes assembled from existing questions.
+
+Question definitions and submissions use type-specific JSON payloads validated by backend handlers. The early `basic_questions` prototype schema has been replaced by the canonical `questions` and `question_attempts` tables; reset local prototype databases before running this version.
 
 ## Run locally without Docker
 
